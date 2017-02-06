@@ -1,0 +1,7 @@
+# SOME FILES TO IGNORE #
+########################
+
+.idea/
+*.iml
+/out/
+.iws
