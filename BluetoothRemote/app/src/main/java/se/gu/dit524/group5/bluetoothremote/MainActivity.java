@@ -5,12 +5,13 @@ import android.os.Bundle;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
+import android.widget.SeekBar;
 
 public class MainActivity extends AppCompatActivity  {
 
-    private MyBluetoothService btService;
     private Button connect;
-    private Button w, a, s, d;
+    private BluetoothService btService;
+    private SeekBar throttleBar, angleBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -21,51 +22,44 @@ public class MainActivity extends AppCompatActivity  {
         connect.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                btService = new MyBluetoothService();
+                btService = new BluetoothService();
             }
         });
 
-        View.OnTouchListener buttonListener = new View.OnTouchListener() {
+        throttleBar = (SeekBar)this.findViewById(R.id.throttleBar);
+        angleBar = (SeekBar)this.findViewById(R.id.angleBar);
+
+        angleBar.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                if (event.getAction() == MotionEvent.ACTION_DOWN) { buttonClicked(v.getId()); return true; }
-                else if (event.getAction() == MotionEvent.ACTION_UP) { buttonClicked(-1); return true; }
-                return false;
+                int x = (int) event.getAxisValue(0), y = (int) event.getAxisValue(1);
+                int maxX = angleBar.getMeasuredWidth(), maxY = angleBar.getMeasuredHeight();
+
+                if (x <= 0) angleBar.setProgress(angleBar.getMax());
+                else if (x >= maxX) angleBar.setProgress(0);
+                else angleBar.setProgress(angleBar.getMax() - x /(maxX /angleBar.getMax()));
+
+                if (y <= 0) throttleBar.setProgress(throttleBar.getMax());
+                else if (y >= maxY) throttleBar.setProgress(0);
+                else throttleBar.setProgress(throttleBar.getMax() - y /(maxY /throttleBar.getMax()));
+
+                byte speed = 0;
+                if (throttleBar.getProgress() < throttleBar.getMax() /2) speed = (byte)(1 << 7);
+                speed += Math.abs(throttleBar.getProgress() -throttleBar.getMax() /2);
+
+                byte angle = 0;
+                if (angleBar.getProgress() > angleBar.getMax() /2) angle = (byte)(1 << 7);
+                angle += Math.abs(angleBar.getProgress() -angleBar.getMax() /2);
+
+                // System.out.println("speed: " +(((speed & 0x80) >= 1) ? "-" : "+") +(speed & 0x7F));
+                // System.out.println("angle: " +(((angle & 0x80) >= 1) ? "-" : "+") +(angle & 0x7F));
+
+                btService.prepareConnection();
+                if (btService.connectionEstablished()) {
+                    btService.connectedThread.write(new byte[]{ 0x12, speed, angle });
+                }
+                return true;
             }
-        };
-
-        w = (Button)this.findViewById(R.id.wButton);
-        w.setOnTouchListener(buttonListener);
-        a = (Button)this.findViewById(R.id.aButton);
-        a.setOnTouchListener(buttonListener);
-        s = (Button)this.findViewById(R.id.sButton);
-        s.setOnTouchListener(buttonListener);
-        d = (Button)this.findViewById(R.id.dButton);
-        d.setOnTouchListener(buttonListener);
+        });
     }
-
-    private void buttonClicked(int srcId) {
-        btService.prepareConnection();
-        if (btService.connectionEstablished()) {
-            switch (srcId) {
-                case R.id.wButton: btService.connectedThread.write(new byte[]{ 'w' } ); break;
-                case R.id.aButton: btService.connectedThread.write(new byte[]{ 'a' } ); break;
-                case R.id.sButton: btService.connectedThread.write(new byte[]{ 's' } ); break;
-                case R.id.dButton: btService.connectedThread.write(new byte[]{ 'd' } ); break;
-                default: btService.connectedThread.write(new byte[]{ 'x' } );
-            }
-        }
-    }
-
-    /*
-        drive forward       0-100 percent
-        drive backwards     0-100 percent
-        turn left           0-90 degrees
-        turn right          0-90 degrees
-
-        7   6   5   4   3   2   1   0
-        128 64  32  16  8   4   2   1
-
-     */
-
 }
