@@ -27,6 +27,9 @@ public class BluetoothService {
     private ConnectedThread connectedThread;
     private PriorityQueue<Instruction> commandQueue;
 
+    private byte[] scanBuffer;
+    private boolean awaitingScanResults;
+
     public BluetoothService() {
         this.commandQueue = new PriorityQueue<>();
         this.handler = new Handler();
@@ -154,6 +157,22 @@ public class BluetoothService {
                             if (commandQueue.size() > 0
                                     && commandQueue.peek().getPriority() < System.currentTimeMillis()) {
                                 this.write(commandQueue.peek().getCmd());
+                            }
+                        }
+                    }
+                    else {
+                        if (!awaitingScanResults && mmBuffer[0] == (byte)0xFF) {
+                            awaitingScanResults = true;
+                            scanBuffer = new byte[numBytes];
+                            System.arraycopy(mmBuffer, 0, scanBuffer, 0, numBytes);
+                        }
+                        else if (awaitingScanResults) {
+                            byte[] tmp = new byte[scanBuffer.length +numBytes];
+                            System.arraycopy(scanBuffer, 0, tmp, 0, scanBuffer.length);
+                            System.arraycopy(mmBuffer, 0, tmp, scanBuffer.length, numBytes);
+                            scanBuffer = tmp;
+                            if (scanBuffer[2] +3 == (byte)scanBuffer.length) {
+                                awaitingScanResults = false;
                             }
                         }
                     }

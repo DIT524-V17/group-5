@@ -9,7 +9,7 @@ import android.widget.SeekBar;
 
 public class MainActivity extends AppCompatActivity  {
 
-    private Button connect;
+    private Button connect, scan;
     private BluetoothService btService;
     private SeekBar throttleBar, angleBar;
 
@@ -23,6 +23,14 @@ public class MainActivity extends AppCompatActivity  {
             @Override
             public void onClick(View v) {
                 btService = new BluetoothService();
+            }
+        });
+
+        scan = (Button)this.findViewById(R.id.scanButton);
+        scan.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                btService.send(new Instruction(new byte[]{ (byte)0xF0 }, -1000));
             }
         });
 
@@ -62,8 +70,8 @@ public class MainActivity extends AppCompatActivity  {
                     btService.send(new Instruction(new byte[]{0x12, speed, angle}, 0));
                 }
 
-                // System.out.println("speed: " +(((speed & 0x80) >= 1) ? "-" : "+") +(speed & 0x7F));
-                // System.out.println("angle: " +(((angle & 0x80) >= 1) ? "-" : "+") +(angle & 0x7F));
+                System.out.println("speed: " +(((speed & 0x80) >= 1) ? "-" : "+") +(speed & 0x7F));
+                System.out.println("angle: " +(((angle & 0x80) >= 1) ? "-" : "+") +(angle & 0x7F));
 
                 return true;
             }
