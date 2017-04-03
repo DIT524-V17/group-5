@@ -12,12 +12,11 @@ public class Map {
     byte[] byteArr = {(byte)0xff, (byte)0};
     ColorModel colorModel = new IndexColorModel(1,2,byteArr,byteArr,byteArr);
     BufferedImage image;
-    MapSensorParser mapSensorParser;
+    MapParser mapParser = new MapParser(this);
 
     public Map() {
 
         this.image = new BufferedImage(2 * Constants.SENSOR_MAX_DISTANCE, 2 * Constants.SENSOR_MAX_DISTANCE, BufferedImage.TYPE_BYTE_BINARY, (IndexColorModel) colorModel);
-        this.mapSensorParser = new MapSensorParser();
     }
 
     public Map(int width, int height){
@@ -28,17 +27,19 @@ public class Map {
         return this.image;
     }
 
-    public void setAsObstacle(Coordinate coord){
-       if(coord != null) {
-           this.image.setRGB((int) coord.getX() + carX, (int) coord.getY() + carY, 0);
-       }
+    public void Overlay(Map map){
+        BufferedImage combined = new BufferedImage(this.getImage().getWidth() + map.getImage().getWidth(),
+                 this.getImage().getHeight() + map.getImage().getHeight(),BufferedImage.TYPE_BYTE_BINARY,
+                (IndexColorModel) colorModel);
+        Graphics g = combined.getGraphics();
+
+        g.drawImage(this.getImage(), this.carX, this.carY, null);
+        g.drawImage(map.getImage(), map.carX, map.carY, null);
+        this.image = combined;
     }
 
-    public void CheckForObstacle(){
-        this.mapSensorParser.parse(0, 100, 0);
-        setAsObstacle(mapSensorParser.returnCoordinateFront());
-        setAsObstacle(mapSensorParser.returnCoordinateBack());
-        this.mapSensorParser.resetCoordinates();
-
+    public void updateCarPosition(int x, int y){
+        this.carX = x;
+        this.carY = y;
     }
 }
