@@ -15,15 +15,17 @@ const int MIN_SPEED = 35;
 const int MIN_DISTANCE = 20;
 const int MIN_OBSTACLE_DETECTIONS = 2;
 const int SERVO_DEFAULT = 0;
-const int SERVO_TURN = 5;
-const int SERVO_PAUSE = 65;
-const int SERVO_FULL_TURN_PAUSE = 1200;
+      int SERVO_TURN = 4;
+      int SERVO_TURN_PAUSE = SERVO_TURN *10;
+const int SERVO_FULL_TURN_PAUSE = 880;
+const int SERVO_READING_DISTANCE = 255;
+const int US_READINGS = 5;
 const int STATE_DEFAULT = 0;
 const int STATE_MAPPING = 15;
 
 Car car;
 Servo servo;
-SR04 us1(255), us2(255);
+SR04 us1(SERVO_READING_DISTANCE), us2(SERVO_READING_DISTANCE);
 GP2Y0A21 middle;
 TemperatureSensor ambient(TEMP_HUM_PIN);
 
@@ -43,47 +45,34 @@ void setup() {
   delay(SERVO_FULL_TURN_PAUSE);
   digitalWrite(SERVO_POWER, HIGH);
   Serial3.begin(9600);
-  Serial.begin(9600);
 }
 
 void loop() { 
   /* MAPPING/SCANNING state, blocks all other instruction processing until done */
   if (state == STATE_MAPPING) {
     digitalWrite(SERVO_POWER, LOW);
-    byte results[180 /SERVO_TURN *3 +3];
-    int pos = 2;
-    for (int repetitions = 0; repetitions < 1; repetitions++) {
-      while (servo_deg <= 180) {
-        ambient.update();
-        int d1 = 0, d2 = 0;
-        int d[10];
-        for (int i = 0; i < (sizeof(d) /2); i++) {
-          d[i *2 +0] = us1.getDistance();
-          d[i *2 +1] = us2.getDistance();
-        }
-        for (int i = 0; i < (sizeof(d) /2); i++) {
-          d1 += d[i *2 +0];
-          d2 += d[i *2 +1];
-        }
-        d1 /= sizeof(d) /2;
-        d2 /= sizeof(d) /2;
-        results[pos *3 +0]   = servo_deg;
-        results[pos *3 +1]   = d1;
-        results[pos++ *3 +2] = d2;
-        Serial.print(servo_deg);
-        Serial.print(": ");
-        Serial.print(d1);
-        Serial.print("cm, ");
-        Serial.print(d2);
-        Serial.print("cm\n");
-        servo.write(servo_deg += SERVO_TURN);
-        delay(SERVO_PAUSE);
+    byte results[(180 /SERVO_TURN +1) *3 +4];
+    int pos = 1;
+    while (servo_deg <= 180) {
+      ambient.update();
+      int d1 = 0, d2 = 0;
+      for (int i = 0; i < US_READINGS; i++) {
+        d1 += us1.getDistance(/*ambient.temperature(), ambient.humidity()*/);
+        d2 += us2.getDistance(/*ambient.temperature(), ambient.humidity()*/);
       }
-      servo.write(servo_deg = SERVO_DEFAULT);
+      results[pos *3 +0] = servo_deg;
+      results[pos *3 +1] = d1 /US_READINGS;
+      results[pos *3 +2] = d2 /US_READINGS;
+      pos++;
+      servo.write(servo_deg += SERVO_TURN);
+      delay(SERVO_TURN_PAUSE);
     }
     state = STATE_DEFAULT;
+    servo_deg = SERVO_DEFAULT;
+    servo.write(servo_deg);
     results[0] = 0xFF;
-    results[2] = sizeof(results) -3;
+    results[1] = ((sizeof(results) -4) &0xFF00) >> 8;
+    results[2] = ((sizeof(results) -4) &0x00FF);
     results[sizeof(results) -1] = crc8(results, 0, sizeof(results) -1);
     Serial3.write(results, sizeof(results));
     delay(SERVO_FULL_TURN_PAUSE);
@@ -127,6 +116,8 @@ void loop() {
         break;
       case 15:   /* MAPPING/SCANNING INSTRUCTION */
         state = STATE_MAPPING;
+        SERVO_TURN = data[1];
+        SERVO_TURN_PAUSE = SERVO_TURN *5;
         car.setSpeed(0);
         car.setAngle(0);
         break;
