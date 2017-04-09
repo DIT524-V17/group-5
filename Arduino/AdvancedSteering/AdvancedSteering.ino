@@ -18,11 +18,14 @@ const int SERVO_DEFAULT = 0;
       int SERVO_TURN = 4;
       int SERVO_TURN_PAUSE = SERVO_TURN *10;
 const int SERVO_FULL_TURN_PAUSE = 880;
-const int SERVO_READING_DISTANCE = 255;
+const int SERVO_READING_DISTANCE = 150;
 const int US_READINGS = 5;
 const int STATE_DEFAULT = 0;
+const int STATE_AUTOMATIC_STEERING = 2;
 const int STATE_MAPPING = 15;
 
+Odometer encoderLeft, encoderRight;
+Gyroscope gyro(-6);
 Car car;
 Servo servo;
 SR04 us1(SERVO_READING_DISTANCE), us2(SERVO_READING_DISTANCE);
@@ -36,7 +39,13 @@ int obstacleDetections = 0;
 
 void setup() {
   pinMode(SERVO_POWER, OUTPUT);
-  car.begin();
+  gyro.attach();
+  gyro.begin(50);
+  encoderLeft.attach(2);
+  encoderRight.attach(3);
+  encoderLeft.begin();
+  encoderRight.begin();
+  car.begin(encoderLeft, encoderRight, gyro);
   servo.attach(SERVO_PIN);
   servo.write(SERVO_DEFAULT);
   us1.attach(US1_TRIGGER, US1_ECHO);
@@ -44,6 +53,7 @@ void setup() {
   middle.attach(IR_MIDDLE_PIN);
   delay(SERVO_FULL_TURN_PAUSE);
   digitalWrite(SERVO_POWER, HIGH);
+  Serial.begin(9600);
   Serial3.begin(9600);
 }
 
@@ -104,7 +114,7 @@ void loop() {
   /* INSTRUCTION PROCESSING, make sure to do whatever we're supposed to do */
   if (cmdReceived) {
     switch (cmd) {
-      case 1:   /* STEERING INSTRUCTIONS */  
+      case 1:    /* MANUAL STEERING INSTRUCTION */  
         if ((data[1] & B10000000) == 0) {
           if (obstacleDetections < MIN_OBSTACLE_DETECTIONS) {
             if ((data[1] & B01111111) > MIN_SPEED) car.setSpeed(data[1] & B01111111);
@@ -113,6 +123,33 @@ void loop() {
         } else car.setSpeed(-(data[1] & B01111111));
         if ((data[2] & B10000000) == 0) car.setAngle(data[2] & B01111111);
         else car.setAngle(-(data[2] & B01111111)); 
+        break;
+      case 2:    /* SEMI-AUTOMATIC STEERING INSTRUCTION */
+        state = STATE_AUTOMATIC_STEERING;
+        int x, y;
+        double hyp, angle;
+        x = (data[1] & B01111111);
+        y = (data[2] & B01111111);
+        hyp = sqrt(x*x + y*y);
+        angle = 90 -(acos(x /hyp) *4068) /71;
+        if ((data[1] & B10000000) == 0 && (data[2] & B10000000) >= 1) {
+          car.rotate((int) angle);        /* X, -Y */
+          car.go((int) hyp);
+        }
+        else if ((data[1] & B10000000) >= 1 && (data[2] & B10000000) >= 1) {
+          car.rotate((int) -angle);       /* -X, -Y */
+          car.go((int) hyp);
+        }
+        else if ((data[1] & B10000000) >= 1 && (data[2] & B10000000) == 0) {
+          car.rotate((int) angle);        /* -X, Y */
+          car.go((int) -hyp);
+        }
+        else if ((data[1] & B10000000) == 0 && (data[2] & B10000000) == 0) {
+          car.rotate((int) -angle);       /* X, Y */
+          car.go((int) -hyp);
+        }
+        Serial3.write(0x2F);
+        state = STATE_DEFAULT;
         break;
       case 15:   /* MAPPING/SCANNING INSTRUCTION */
         state = STATE_MAPPING;

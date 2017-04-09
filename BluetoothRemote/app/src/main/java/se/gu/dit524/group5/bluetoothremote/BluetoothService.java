@@ -8,6 +8,7 @@ import android.os.Handler;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.PriorityQueue;
 import java.util.Set;
@@ -28,6 +29,10 @@ public class BluetoothService {
     private PriorityQueue<Instruction> commandQueue;
 
     private byte[] scanBuffer;
+    protected Object mainActivity;
+    protected Method scanCallback;
+    protected Method automaticSteeringCallback;
+    protected boolean awaitingSteeringCallback;
     private boolean awaitingScanResults;
 
     public BluetoothService() {
@@ -139,9 +144,9 @@ public class BluetoothService {
         }
 
         public void run() {
-            mmBuffer = new byte[1024];
+            mmBuffer = new byte[4096];
             int numBytes;
-            while (true) {
+            while (this.mmSocket.isConnected()) {
                 try {
                     numBytes = mmInStream.read(mmBuffer);
                     if (sending) {
@@ -171,14 +176,24 @@ public class BluetoothService {
                             System.arraycopy(scanBuffer, 0, tmp, 0, scanBuffer.length);
                             System.arraycopy(mmBuffer, 0, tmp, scanBuffer.length, numBytes);
                             scanBuffer = tmp;
-                            if (scanBuffer[2] +3 == (byte)scanBuffer.length) {
+                            if ((scanBuffer[1] << 8) + scanBuffer[2] +4 == (byte)scanBuffer.length) {
+                                ScanResult scanResult = new ScanResult(scanBuffer, 3, scanBuffer.length -4);
+
                                 awaitingScanResults = false;
+                                try { scanCallback.invoke(mainActivity, scanResult); }
+                                catch (Exception e) { e.printStackTrace(); }
                             }
+                        }
+                        if (awaitingSteeringCallback && mmBuffer[0] == (byte)0x2F) {
+                            awaitingSteeringCallback = false;
+                            try { automaticSteeringCallback.invoke(mainActivity); }
+                            catch (Exception e) { e.printStackTrace(); }
                         }
                     }
                 } catch (IOException e) {
                     System.out.println("An error occurred when receiving data:");
                     e.printStackTrace();
+                    try { mmSocket.close(); } catch (IOException ex) { ex.printStackTrace(); }
                 }
             }
         }
