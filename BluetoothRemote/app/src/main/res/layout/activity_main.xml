@@ -5,16 +5,14 @@
     android:id="@+id/activity_main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingBottom="@dimen/activity_vertical_margin"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context="se.gu.dit524.group5.bluetoothremote.MainActivity">
+
+    tools:context="MainActivity">
+    >
 
     <ImageView
         android:id="@+id/mapView"
-        android:layout_width="300dp"
-        android:layout_height="300dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:layout_marginBottom="12dp"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
@@ -27,7 +25,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/connectButton"
-        android:layout_alignParentTop="true"
+        android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true" />
 
     <SeekBar
@@ -46,8 +44,7 @@
         android:layout_height="200dp"
         android:max="180"
         android:progress="90"
-        android:layout_marginBottom="62dp"
-        android:layout_alignParentBottom="true"
+        android:layout_above="@+id/movementToggle"
         android:layout_alignStart="@+id/throttleBar" />
 
     <Button
@@ -62,7 +59,7 @@
         android:id="@+id/movementToggle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
+        android:layout_alignParentBottom="true"
         android:layout_toEndOf="@+id/scanButton"
         android:checked="false"
         android:textOff="Manual"
@@ -92,5 +89,6 @@
         android:layout_alignEnd="@+id/mapView"
         android:layout_alignTop="@+id/carPosText"
         android:visibility="invisible" />
+
 
 </RelativeLayout>
