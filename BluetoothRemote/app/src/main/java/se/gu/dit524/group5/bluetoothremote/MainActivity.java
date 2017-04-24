@@ -1,9 +1,10 @@
 package se.gu.dit524.group5.bluetoothremote;
 
+import android.content.Intent;
 import android.graphics.Point;
+import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
@@ -13,11 +14,10 @@ import android.widget.TextView;
 import android.widget.ToggleButton;
 
 import java.util.ArrayList;
-import java.util.Random;
 
+import group5.marbleapp.ActivitySecond;
 import se.gu.dit524.group5.bluetoothremote.Mapping.Map;
 
-import static se.gu.dit524.group5.bluetoothremote.Mapping.Constants.SENSOR_MAX_DISTANCE;
 import static se.gu.dit524.group5.bluetoothremote.Mapping.Constants.SERVO_TURN_DEGREES;
 
 public class MainActivity extends AppCompatActivity  {
@@ -31,6 +31,7 @@ public class MainActivity extends AppCompatActivity  {
     private SeekBar throttleBar, angleBar;
     private Point lastSteeringDirection;
     private TextView posView, targetView;
+    public static final String EXTRA_MESSAGE = "com.example.MarbleApp.MESSAGE";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -259,4 +260,12 @@ public class MainActivity extends AppCompatActivity  {
             }
         });
     }
+
+        //This starts a new activity when clicking the start button in the activity_main.
+        public void sendMessage(View view){
+            Intent intent = new Intent(this, ActivitySecond.class);
+            this.startActivity(intent);
+    }
+
+
 }
