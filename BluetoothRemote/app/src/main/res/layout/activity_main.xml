@@ -2,93 +2,20 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/activity_main"
+    android:id="@+id/control_window"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-
+    android:background="@drawable/img"
     tools:context="MainActivity">
-    >
-
-    <ImageView
-        android:id="@+id/mapView"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginBottom="12dp"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:scaleType="fitCenter"
-        android:background="@drawable/mapview_border"
-        android:visibility="invisible"/>
 
     <Button
-        android:text="Connect"
+        android:id="@+id/button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/connectButton"
+        android:layout_marginBottom="55dp"
+        android:onClick="sendMessage"
+        android:background="@drawable/button"
         android:layout_alignParentBottom="true"
-        android:layout_alignParentEnd="true" />
-
-    <SeekBar
-        android:id="@+id/throttleBar"
-        android:layout_width="200dp"
-        android:layout_height="200dp"
-        android:max="200"
-        android:progress="100"
-        android:rotation="-90"
-        android:layout_alignTop="@+id/angleBar"
         android:layout_centerHorizontal="true" />
-
-    <SeekBar
-        android:id="@+id/angleBar"
-        android:layout_width="200dp"
-        android:layout_height="200dp"
-        android:max="180"
-        android:progress="90"
-        android:layout_above="@+id/movementToggle"
-        android:layout_alignStart="@+id/throttleBar" />
-
-    <Button
-        android:id="@+id/scanButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/connectButton"
-        android:layout_alignParentStart="true"
-        android:text="SCAN" />
-
-    <ToggleButton
-        android:id="@+id/movementToggle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_toEndOf="@+id/scanButton"
-        android:checked="false"
-        android:textOff="Manual"
-        android:textOn="SA" />
-
-    <Button
-        android:id="@+id/resetButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/scanButton"
-        android:layout_toStartOf="@+id/movementToggle"
-        android:text="Reset"
-        android:visibility="invisible" />
-
-    <TextView
-        android:id="@+id/carPosText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/mapView"
-        android:layout_alignStart="@+id/mapView"
-        android:visibility="invisible" />
-
-    <TextView
-        android:id="@+id/targetPosText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignEnd="@+id/mapView"
-        android:layout_alignTop="@+id/carPosText"
-        android:visibility="invisible" />
-
 
 </RelativeLayout>
