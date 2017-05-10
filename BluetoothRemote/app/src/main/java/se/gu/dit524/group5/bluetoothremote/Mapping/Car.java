@@ -80,7 +80,6 @@ public class Car {
         this.center = new PointF(x, y);
         this.front = frontAngle;
         this.relocate();
-        this.reshape();
     }
 
     private void relocate() {
@@ -189,16 +188,53 @@ public class Car {
     }
 
     public void rotate(int degrees) {
+        this.rotate(degrees, false);
+    }
 
+    public void rotate(int degrees, boolean backwards) {
+        double sin, cos;
+        if (!backwards) {
+            sin = Math.sin(Math.toRadians(degrees));
+            cos = Math.cos(Math.toRadians(degrees));
+        }
+        else {
+            sin = Math.sin(Math.toRadians(-degrees));
+            cos = Math.cos(Math.toRadians(-degrees));
+        }
+
+        if (degrees > 0) {
+            this.center = new PointF(
+                (float)(cos *(this.center.x -this.frWheel.x) -sin *(this.center.y -this.frWheel.y) +this.frWheel.x),
+                (float)(sin *(this.center.x -this.frWheel.x) +cos *(this.center.y -this.frWheel.y) +this.frWheel.y));
+        }
+        else if (degrees < 0) {
+            this.center = new PointF(
+                (float)(cos *(this.center.x -this.flWheel.x) -sin *(this.center.y -this.flWheel.y) +this.flWheel.x),
+                (float)(sin *(this.center.x -this.flWheel.x) +cos *(this.center.y -this.flWheel.y) +this.flWheel.y));
+        }
+        this.front += degrees;
+        if (this.front > 180) this.front -= 360;
+        else if (this.front < -180) this.front += 360;
+
+        this.relocate();
     }
 
     public void move(int centimeters) {
+        double sin, cos;
 
+        sin = Math.sin(Math.toRadians(this.front));
+        cos = Math.cos(Math.toRadians(this.front));
+
+        this.center = new PointF((float)(center.x -sin *centimeters), (float)(center.y -cos *centimeters));
+        this.relocate();
     }
 
     public void draw(Canvas c) {
+        this.erase(c);
+        this.reshape();
+
         Paint p = new Paint();
-        p.setStrokeWidth(1);
+        p.setStrokeWidth(1.0f);
         p.setAntiAlias(true);
         p.setStyle(Paint.Style.FILL_AND_STROKE);
 
@@ -215,6 +251,22 @@ public class Car {
         c.drawPath(this.cupholder, p);
 
         p.setColor(Color.argb(0xff, 0x33, 0x33, 0x33));
+        for (Path wheel : this.wheels) c.drawPath(wheel, p);
+    }
+
+    private void erase(Canvas c) {
+        if (this.car == null || this.cupholder == null || this.wheels.length == 0) return;
+        Paint p = new Paint();
+        p.setStrokeWidth(2.5f);
+        p.setAntiAlias(true);
+        p.setStyle(Paint.Style.FILL_AND_STROKE);
+
+        p.setColor(Color.argb(0xff, 0xff, 0xff, 0xff));
+
+        c.drawPath(this.car, p);
+        c.drawCircle(center.x, center.y, 4.0f, p);
+        c.drawCircle(servo.x, servo.y, 2.5f, p);
+        c.drawPath(this.cupholder, p);
         for (Path wheel : this.wheels) c.drawPath(wheel, p);
     }
 
@@ -243,7 +295,7 @@ public class Car {
         c.drawCircle(rlWheel.x, rlWheel.y, 0.5f, p);
         c.drawCircle(rrWheel.x, rrWheel.y, 0.5f, p);
 
-        // c.drawCircle(center.x, center.y, frontWRad, p);
-        // c.drawCircle(center.x, center.y, rearWRad, p);
+        c.drawCircle(flWheel.x, flWheel.y, frontWRad, p);
+        c.drawCircle(frWheel.x, frWheel.y, frontWRad, p);
     }
 }
