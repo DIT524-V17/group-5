@@ -18,4 +18,9 @@ public class MainActivity extends AppCompatActivity  {
         Intent intent = new Intent(this, ActivitySecond.class);
         this.startActivity(intent);
     }
+
+    public void sendMessageToMaps(View view){
+        Intent intent = new Intent(this, ActivityThird.class);
+        this.startActivity(intent);
+    }
 }
