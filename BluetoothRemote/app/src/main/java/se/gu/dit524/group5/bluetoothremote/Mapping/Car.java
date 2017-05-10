@@ -49,33 +49,51 @@ public class Car {
         this.center = new PointF(CAR_WIDTH /2, CAR_HEIGHT /2);
         this.servo =  new PointF(CAR_WIDTH /2, CAR_HEIGHT -WHEEL_REAR_OFFSET -WHEEL_HEIGHT /2);
 
-        this.flWAngle = (float) (-180 +Math.toDegrees(Math.atan((flWheel.x -center.x) /(flWheel.y -center.y))));
-        this.frWAngle = (float) (-180 +Math.toDegrees(Math.atan((frWheel.x -center.x) /(frWheel.y -center.y))));
-        this.rlWAngle = (float) Math.toDegrees(Math.atan((rlWheel.x -center.x) /(rlWheel.y -center.y)));
-        this.rrWAngle = (float) Math.toDegrees(Math.atan((rrWheel.x -center.x) /(rrWheel.y -center.y)));
+        this.flWAngle = (float) (-180 +Math.toDegrees(Math.atan((this.flWheel.x -this.center.x)
+                                                               /(this.flWheel.y -this.center.y))));
+        this.frWAngle = (float) (-180 +Math.toDegrees(Math.atan((this.frWheel.x -this.center.x)
+                                                               /(this.frWheel.y -this.center.y))));
+        this.rlWAngle = (float) Math.toDegrees(Math.atan((this.rlWheel.x -this.center.x)
+                                                        /(this.rlWheel.y -this.center.y)));
+        this.rrWAngle = (float) Math.toDegrees(Math.atan((this.rrWheel.x -this.center.x)
+                                                        /(this.rrWheel.y -this.center.y)));
 
-        this.flCAngle = (float) (-180 +Math.toDegrees(Math.atan((flCorner.x -center.x) /(flCorner.y -center.y))));
-        this.frCAngle = (float) Math.toDegrees(Math.atan((frCorner.x -center.x) /(frCorner.y -center.y)));
-        this.rlCAngle = (float) (180 +Math.toDegrees(Math.atan((rlCorner.x -center.x) /(rlCorner.y -center.y))));
-        this.rrCAngle = (float) Math.toDegrees(Math.atan((rrCorner.x -center.x) /(rrCorner.y -center.y)));
+        this.flCAngle = (float) (-180 +Math.toDegrees(Math.atan((this.flCorner.x -this.center.x)
+                                                               /(this.flCorner.y -this.center.y))));
+        this.frCAngle = (float) Math.toDegrees(Math.atan((this.frCorner.x -this.center.x)
+                                                        /(this.frCorner.y -this.center.y)));
+        this.rlCAngle = (float) (180 +Math.toDegrees(Math.atan((this.rlCorner.x -this.center.x)
+                                                              /(this.rlCorner.y -this.center.y))));
+        this.rrCAngle = (float) Math.toDegrees(Math.atan((this.rrCorner.x -this.center.x)
+                                                        /(this.rrCorner.y -this.center.y)));
 
-        this.flCHAngle = (float) (90 +Math.toDegrees(Math.atan((flCHCorner.x -center.x) /(flCHCorner.y -center.y))));
-        this.frCHAngle = (float) (90 +Math.toDegrees(Math.atan((frCHCorner.x -center.x) /(frCHCorner.y -center.y))));
-        this.rlCHAngle = (float) (90 +Math.toDegrees(Math.atan((rlCHCorner.x -center.x) /(rlCHCorner.y -center.y))));
-        this.rrCHAngle = (float) (90 +Math.toDegrees(Math.atan((rrCHCorner.x -center.x) /(rrCHCorner.y -center.y))));
+        this.flCHAngle = (float) (90 +Math.toDegrees(Math.atan((this.flCHCorner.x -this.center.x)
+                                                              /(this.flCHCorner.y -this.center.y))));
+        this.frCHAngle = (float) (90 +Math.toDegrees(Math.atan((this.frCHCorner.x -this.center.x)
+                                                              /(this.frCHCorner.y -this.center.y))));
+        this.rlCHAngle = (float) (90 +Math.toDegrees(Math.atan((this.rlCHCorner.x -this.center.x)
+                                                              /(this.rlCHCorner.y -this.center.y))));
+        this.rrCHAngle = (float) (90 +Math.toDegrees(Math.atan((this.rrCHCorner.x -this.center.x)
+                                                              /(this.rrCHCorner.y -this.center.y))));
 
-        this.frontWRad = (float) Math.sqrt(Math.pow(frWheel.x -center.x, 2) +Math.pow(frWheel.y -center.y, 2));
-        this.rearWRad =  (float) Math.sqrt(Math.pow(rrWheel.x -center.x, 2) +Math.pow(rrWheel.y -center.y, 2));
-        this.frontCRad = (float) Math.sqrt(Math.pow(frCorner.x -center.x, 2) +Math.pow(frCorner.y -center.y, 2));
-        this.rearCRad =  (float) Math.sqrt(Math.pow(rrCorner.x -center.x, 2) +Math.pow(rrCorner.y -center.y, 2));
-        this.frontCHRad = (float) Math.sqrt(Math.pow(frCHCorner.x -center.x, 2) +Math.pow(frCHCorner.y -center.y, 2));
-        this.rearCHRad =  (float) Math.sqrt(Math.pow(rrCHCorner.x -center.x, 2) +Math.pow(rrCHCorner.y -center.y, 2));
+        this.frontWRad = (float) Math.sqrt(Math.pow(this.frWheel.x -this.center.x, 2)
+                                          +Math.pow(this.frWheel.y -this.center.y, 2));
+        this.rearWRad =  (float) Math.sqrt(Math.pow(this.rrWheel.x -this.center.x, 2)
+                                          +Math.pow(this.rrWheel.y -this.center.y, 2));
+        this.frontCRad = (float) Math.sqrt(Math.pow(this.frCorner.x -this.center.x, 2)
+                                          +Math.pow(this.frCorner.y -this.center.y, 2));
+        this.rearCRad =  (float) Math.sqrt(Math.pow(this.rrCorner.x -this.center.x, 2)
+                                          +Math.pow(this.rrCorner.y -this.center.y, 2));
+        this.frontCHRad = (float) Math.sqrt(Math.pow(this.frCHCorner.x -this.center.x, 2)
+                                           +Math.pow(this.frCHCorner.y -this.center.y, 2));
+        this.rearCHRad =  (float) Math.sqrt(Math.pow(this.rrCHCorner.x -this.center.x, 2)
+                                           +Math.pow(this.rrCHCorner.y -this.center.y, 2));
 
-        this.innerWRad = (float) (Math.sqrt(Math.pow(WHEEL_WIDTH, 2) +Math.pow(WHEEL_HEIGHT, 2)) /2);
-        this.innerWflCAngle = (float) (90 +Math.toDegrees(Math.atan((WHEEL_WIDTH /2) /(WHEEL_HEIGHT /2))));
-        this.innerWfrCAngle = (float) (90 -Math.toDegrees(Math.atan((WHEEL_WIDTH /2) /(WHEEL_HEIGHT /2))));
-        this.innerWrlCAngle = (float) (-90 -Math.toDegrees(Math.atan((WHEEL_WIDTH /2) /(WHEEL_HEIGHT /2))));
-        this.innerWrrCAngle = (float) (-90 +Math.toDegrees(Math.atan((WHEEL_WIDTH /2) /(WHEEL_HEIGHT /2))));
+        this.innerWRad =      (float)(Math.sqrt(Math.pow(WHEEL_WIDTH, 2) +Math.pow(WHEEL_HEIGHT, 2)) /2);
+        this.innerWflCAngle = (float)(90 +Math.toDegrees(Math.atan((WHEEL_WIDTH /2) /(WHEEL_HEIGHT /2))));
+        this.innerWfrCAngle = (float)(90 -Math.toDegrees(Math.atan((WHEEL_WIDTH /2) /(WHEEL_HEIGHT /2))));
+        this.innerWrlCAngle = (float)(-90 -Math.toDegrees(Math.atan((WHEEL_WIDTH /2) /(WHEEL_HEIGHT /2))));
+        this.innerWrrCAngle = (float)(-90 +Math.toDegrees(Math.atan((WHEEL_WIDTH /2) /(WHEEL_HEIGHT /2))));
 
         this.center = new PointF(x, y);
         this.front = frontAngle;
@@ -85,86 +103,103 @@ public class Car {
     private void relocate() {
         double sin, cos;
 
-        sin = Math.sin(Math.toRadians(flWAngle +this.front));
-        cos = Math.cos(Math.toRadians(flWAngle +this.front));
-        this.flWheel = new PointF((float) (center.x +sin *frontWRad), (float) (center.y +cos *frontWRad));
-        sin = Math.sin(Math.toRadians(frWAngle +this.front));
-        cos = Math.cos(Math.toRadians(frWAngle +this.front));
-        this.frWheel = new PointF((float) (center.x +sin *frontWRad), (float) (center.y +cos *frontWRad));
-        sin = Math.sin(Math.toRadians(rlWAngle +this.front));
-        cos = Math.cos(Math.toRadians(rlWAngle +this.front));
-        this.rlWheel = new PointF((float) (center.x +sin *rearWRad), (float) (center.y +cos *rearWRad));
-        sin = Math.sin(Math.toRadians(rrWAngle +this.front));
-        cos = Math.cos(Math.toRadians(rrWAngle +this.front));
-        this.rrWheel = new PointF((float) (center.x +sin *rearWRad), (float) (center.y +cos *rearWRad));
+        sin = Math.sin(Math.toRadians(this.flWAngle +this.front));
+        cos = Math.cos(Math.toRadians(this.flWAngle +this.front));
+        this.flWheel = new PointF((float) (this.center.x +sin *this.frontWRad),
+                                  (float) (this.center.y +cos *this.frontWRad));
+        sin = Math.sin(Math.toRadians(this.frWAngle +this.front));
+        cos = Math.cos(Math.toRadians(this.frWAngle +this.front));
+        this.frWheel = new PointF((float) (this.center.x +sin *this.frontWRad),
+                                  (float) (this.center.y +cos *this.frontWRad));
+        sin = Math.sin(Math.toRadians(this.rlWAngle +this.front));
+        cos = Math.cos(Math.toRadians(this.rlWAngle +this.front));
+        this.rlWheel = new PointF((float) (this.center.x +sin *this.rearWRad),
+                                  (float) (this.center.y +cos *this.rearWRad));
+        sin = Math.sin(Math.toRadians(this.rrWAngle +this.front));
+        cos = Math.cos(Math.toRadians(this.rrWAngle +this.front));
+        this.rrWheel = new PointF((float) (this.center.x +sin *this.rearWRad),
+                                  (float) (this.center.y +cos *this.rearWRad));
 
-        sin = Math.sin(Math.toRadians(flCAngle +this.front));
-        cos = Math.cos(Math.toRadians(flCAngle +this.front));
-        this.flCorner = new PointF((float) (center.x +sin *frontCRad), (float) (center.y +cos *frontCRad));
-        sin = Math.sin(Math.toRadians(frCAngle +this.front));
-        cos = Math.cos(Math.toRadians(frCAngle +this.front));
-        this.frCorner = new PointF((float) (center.x +sin *frontCRad), (float) (center.y +cos *frontCRad));
-        sin = Math.sin(Math.toRadians(rlCAngle +this.front));
-        cos = Math.cos(Math.toRadians(rlCAngle +this.front));
-        this.rlCorner = new PointF((float) (center.x +sin *rearCRad), (float) (center.y +cos *rearCRad));
-        sin = Math.sin(Math.toRadians(rrCAngle +this.front));
-        cos = Math.cos(Math.toRadians(rrCAngle +this.front));
-        this.rrCorner = new PointF((float) (center.x +sin *rearCRad), (float) (center.y +cos *rearCRad));
+        sin = Math.sin(Math.toRadians(this.flCAngle +this.front));
+        cos = Math.cos(Math.toRadians(this.flCAngle +this.front));
+        this.flCorner = new PointF((float) (this.center.x +sin *this.frontCRad),
+                                   (float) (this.center.y +cos *this.frontCRad));
+        sin = Math.sin(Math.toRadians(this.frCAngle +this.front));
+        cos = Math.cos(Math.toRadians(this.frCAngle +this.front));
+        this.frCorner = new PointF((float) (this.center.x +sin *this.frontCRad),
+                                   (float) (this.center.y +cos *this.frontCRad));
+        sin = Math.sin(Math.toRadians(this.rlCAngle +this.front));
+        cos = Math.cos(Math.toRadians(this.rlCAngle +this.front));
+        this.rlCorner = new PointF((float) (this.center.x +sin *this.rearCRad),
+                                   (float) (this.center.y +cos *this.rearCRad));
+        sin = Math.sin(Math.toRadians(this.rrCAngle +this.front));
+        cos = Math.cos(Math.toRadians(this.rrCAngle +this.front));
+        this.rrCorner = new PointF((float) (this.center.x +sin *this.rearCRad),
+                                   (float) (this.center.y +cos *this.rearCRad));
 
-        sin = Math.sin(Math.toRadians(flCHAngle -this.front));
-        cos = Math.cos(Math.toRadians(flCHAngle -this.front));
-        this.flCHCorner = new PointF((float) (center.x +cos *frontCHRad), (float) (center.y +sin *frontCHRad));
-        sin = Math.sin(Math.toRadians(frCHAngle -this.front));
-        cos = Math.cos(Math.toRadians(frCHAngle -this.front));
-        this.frCHCorner = new PointF((float) (center.x +cos *frontCHRad), (float) (center.y +sin *frontCHRad));
-        sin = Math.sin(Math.toRadians(rlCHAngle -this.front));
-        cos = Math.cos(Math.toRadians(rlCHAngle -this.front));
-        this.rlCHCorner = new PointF((float) (center.x +cos *rearCHRad), (float) (center.y +sin *rearCHRad));
-        sin = Math.sin(Math.toRadians(rrCHAngle -this.front));
-        cos = Math.cos(Math.toRadians(rrCHAngle -this.front));
-        this.rrCHCorner = new PointF((float) (center.x +cos *rearCHRad), (float) (center.y +sin *rearCHRad));
+        sin = Math.sin(Math.toRadians(this.flCHAngle -this.front));
+        cos = Math.cos(Math.toRadians(this.flCHAngle -this.front));
+        this.flCHCorner = new PointF((float) (this.center.x +cos *this.frontCHRad),
+                                     (float) (this.center.y +sin *this.frontCHRad));
+        sin = Math.sin(Math.toRadians(this.frCHAngle -this.front));
+        cos = Math.cos(Math.toRadians(this.frCHAngle -this.front));
+        this.frCHCorner = new PointF((float) (this.center.x +cos *this.frontCHRad),
+                                     (float) (this.center.y +sin *this.frontCHRad));
+        sin = Math.sin(Math.toRadians(this.rlCHAngle -this.front));
+        cos = Math.cos(Math.toRadians(this.rlCHAngle -this.front));
+        this.rlCHCorner = new PointF((float) (this.center.x +cos *this.rearCHRad),
+                                     (float) (this.center.y +sin *this.rearCHRad));
+        sin = Math.sin(Math.toRadians(this.rrCHAngle -this.front));
+        cos = Math.cos(Math.toRadians(this.rrCHAngle -this.front));
+        this.rrCHCorner = new PointF((float) (this.center.x +cos *this.rearCHRad),
+                                     (float) (this.center.y +sin *this.rearCHRad));
 
-        this.servo =  new PointF((rlWheel.x +rrWheel.x) /2, (rlWheel.y +rrWheel.y) /2);
+        this.servo =  new PointF((this.rlWheel.x +this.rrWheel.x) /2,
+                                 (this.rlWheel.y +this.rrWheel.y) /2);
     }
 
     private void reshape() {
         this.car = new Path();
-        this.car.moveTo(flCorner.x, flCorner.y);
-        this.car.lineTo(frCorner.x, frCorner.y);
-        this.car.lineTo(rrCorner.x, rrCorner.y);
-        this.car.lineTo(rlCorner.x, rlCorner.y);
-        this.car.lineTo(flCorner.x, flCorner.y);
+        this.car.moveTo(this.flCorner.x, this.flCorner.y);
+        this.car.lineTo(this.frCorner.x, this.frCorner.y);
+        this.car.lineTo(this.rrCorner.x, this.rrCorner.y);
+        this.car.lineTo(this.rlCorner.x, this.rlCorner.y);
+        this.car.lineTo(this.flCorner.x, this.flCorner.y);
 
         this.cupholder = new Path();
-        this.cupholder.moveTo(flCHCorner.x, flCHCorner.y);
-        this.cupholder.lineTo(frCHCorner.x, frCHCorner.y);
-        this.cupholder.lineTo(rrCHCorner.x, rrCHCorner.y);
-        this.cupholder.lineTo(rlCHCorner.x, rlCHCorner.y);
-        this.cupholder.lineTo(flCHCorner.x, flCHCorner.y);
+        this.cupholder.moveTo(this.flCHCorner.x, this.flCHCorner.y);
+        this.cupholder.lineTo(this.frCHCorner.x, this.frCHCorner.y);
+        this.cupholder.lineTo(this.rrCHCorner.x, this.rrCHCorner.y);
+        this.cupholder.lineTo(this.rlCHCorner.x, this.rlCHCorner.y);
+        this.cupholder.lineTo(this.flCHCorner.x, this.flCHCorner.y);
 
         this.wheels = new Path[4];
         for (int i = 0; i < this.wheels.length; i++) {
             PointF wheel, fl, fr, rl, rr;
             double sin, cos;
             switch (i) {
-                case 0: wheel = flWheel; break;
-                case 1: wheel = frWheel; break;
-                case 2: wheel = rlWheel; break;
-                case 3: wheel = rrWheel; break;
+                case 0: wheel = this.flWheel; break;
+                case 1: wheel = this.frWheel; break;
+                case 2: wheel = this.rlWheel; break;
+                case 3: wheel = this.rrWheel; break;
                 default: wheel = new PointF();
             }
-            sin = Math.sin(Math.toRadians(innerWflCAngle -this.front));
-            cos = Math.cos(Math.toRadians(innerWflCAngle -this.front));
-            fl = new PointF((float) (wheel.x +cos *innerWRad), (float) (wheel.y +sin *innerWRad));
-            sin = Math.sin(Math.toRadians(innerWfrCAngle -this.front));
-            cos = Math.cos(Math.toRadians(innerWfrCAngle -this.front));
-            fr = new PointF((float) (wheel.x +cos *innerWRad), (float) (wheel.y +sin *innerWRad));
-            sin = Math.sin(Math.toRadians(innerWrlCAngle -this.front));
-            cos = Math.cos(Math.toRadians(innerWrlCAngle -this.front));
-            rl = new PointF((float) (wheel.x +cos *innerWRad), (float) (wheel.y +sin *innerWRad));
-            sin = Math.sin(Math.toRadians(innerWrrCAngle -this.front));
-            cos = Math.cos(Math.toRadians(innerWrrCAngle -this.front));
-            rr = new PointF((float) (wheel.x +cos *innerWRad), (float) (wheel.y +sin *innerWRad));
+            sin = Math.sin(Math.toRadians(this.innerWflCAngle -this.front));
+            cos = Math.cos(Math.toRadians(this.innerWflCAngle -this.front));
+            fl = new PointF((float) (wheel.x +cos *innerWRad),
+                            (float) (wheel.y +sin *this.innerWRad));
+            sin = Math.sin(Math.toRadians(this.innerWfrCAngle -this.front));
+            cos = Math.cos(Math.toRadians(this.innerWfrCAngle -this.front));
+            fr = new PointF((float) (wheel.x +cos *innerWRad),
+                            (float) (wheel.y +sin *this.innerWRad));
+            sin = Math.sin(Math.toRadians(this.innerWrlCAngle -this.front));
+            cos = Math.cos(Math.toRadians(this.innerWrlCAngle -this.front));
+            rl = new PointF((float) (wheel.x +cos *innerWRad),
+                            (float) (wheel.y +sin *this.innerWRad));
+            sin = Math.sin(Math.toRadians(this.innerWrrCAngle -this.front));
+            cos = Math.cos(Math.toRadians(this.innerWrrCAngle -this.front));
+            rr = new PointF((float) (wheel.x +cos *innerWRad),
+                            (float) (wheel.y +sin *this.innerWRad));
 
             this.wheels[i] = new Path();
             this.wheels[i].moveTo(fl.x, fl.y);
@@ -176,15 +211,15 @@ public class Car {
     }
 
     public double front() {
-        return front;
+        return this.front;
     }
 
     public PointF center() {
-        return center;
+        return this.center;
     }
 
     public PointF servo() {
-        return servo;
+        return this.servo;
     }
 
     public void rotate(int degrees) {
@@ -204,13 +239,17 @@ public class Car {
 
         if (degrees > 0) {
             this.center = new PointF(
-                (float)(cos *(this.center.x -this.frWheel.x) -sin *(this.center.y -this.frWheel.y) +this.frWheel.x),
-                (float)(sin *(this.center.x -this.frWheel.x) +cos *(this.center.y -this.frWheel.y) +this.frWheel.y));
+                (float)(cos *(this.center.x -this.frWheel.x) -sin
+                            *(this.center.y -this.frWheel.y) +this.frWheel.x),
+                (float)(sin *(this.center.x -this.frWheel.x) +cos
+                            *(this.center.y -this.frWheel.y) +this.frWheel.y));
         }
         else if (degrees < 0) {
             this.center = new PointF(
-                (float)(cos *(this.center.x -this.flWheel.x) -sin *(this.center.y -this.flWheel.y) +this.flWheel.x),
-                (float)(sin *(this.center.x -this.flWheel.x) +cos *(this.center.y -this.flWheel.y) +this.flWheel.y));
+                (float)(cos *(this.center.x -this.flWheel.x) -sin
+                            *(this.center.y -this.flWheel.y) +this.flWheel.x),
+                (float)(sin *(this.center.x -this.flWheel.x) +cos
+                            *(this.center.y -this.flWheel.y) +this.flWheel.y));
         }
         this.front += degrees;
         if (this.front > 180) this.front -= 360;
@@ -242,10 +281,10 @@ public class Car {
         c.drawPath(this.car, p);
 
         p.setColor(Color.argb(0xff, 0x71, 0xb9, 0x60));
-        c.drawCircle(center.x, center.y, 4.0f, p);
+        c.drawCircle(this.center.x, this.center.y, 4.0f, p);
 
         p.setColor(Color.argb(0xff, 0x6b, 0x85, 0xff));
-        c.drawCircle(servo.x, servo.y, 2.5f, p);
+        c.drawCircle(this.servo.x, this.servo.y, 2.5f, p);
 
         p.setColor(Color.argb(0xff, 0x66, 0x66, 0x66));
         c.drawPath(this.cupholder, p);
@@ -264,8 +303,8 @@ public class Car {
         p.setColor(Color.argb(0xff, 0xff, 0xff, 0xff));
 
         c.drawPath(this.car, p);
-        c.drawCircle(center.x, center.y, 4.0f, p);
-        c.drawCircle(servo.x, servo.y, 2.5f, p);
+        c.drawCircle(this.center.x, this.center.y, 4.0f, p);
+        c.drawCircle(this.servo.x, this.servo.y, 2.5f, p);
         c.drawPath(this.cupholder, p);
         for (Path wheel : this.wheels) c.drawPath(wheel, p);
     }
@@ -277,25 +316,25 @@ public class Car {
         p.setColor(Color.MAGENTA);
         p.setStyle(Paint.Style.STROKE);
 
-        c.drawCircle(center.x, center.y, 0.5f, p);
-        c.drawCircle(servo.x, servo.y, 0.5f, p);
+        c.drawCircle(this.center.x, this.center.y, 0.5f, p);
+        c.drawCircle(this.servo.x, this.servo.y, 0.5f, p);
 
-        c.drawCircle(flCorner.x, flCorner.y, 0.5f, p);
-        c.drawCircle(frCorner.x, frCorner.y, 0.5f, p);
-        c.drawCircle(rlCorner.x, rlCorner.y, 0.5f, p);
-        c.drawCircle(rrCorner.x, rrCorner.y, 0.5f, p);
+        c.drawCircle(this.flCorner.x, this.flCorner.y, 0.5f, p);
+        c.drawCircle(this.frCorner.x, this.frCorner.y, 0.5f, p);
+        c.drawCircle(this.rlCorner.x, this.rlCorner.y, 0.5f, p);
+        c.drawCircle(this.rrCorner.x, this.rrCorner.y, 0.5f, p);
 
-        c.drawCircle(flCHCorner.x, flCHCorner.y, 0.5f, p);
-        c.drawCircle(frCHCorner.x, frCHCorner.y, 0.5f, p);
-        c.drawCircle(rlCHCorner.x, rlCHCorner.y, 0.5f, p);
-        c.drawCircle(rrCHCorner.x, rrCHCorner.y, 0.5f, p);
+        c.drawCircle(this.flCHCorner.x, this.flCHCorner.y, 0.5f, p);
+        c.drawCircle(this.frCHCorner.x, this.frCHCorner.y, 0.5f, p);
+        c.drawCircle(this.rlCHCorner.x, this.rlCHCorner.y, 0.5f, p);
+        c.drawCircle(this.rrCHCorner.x, this.rrCHCorner.y, 0.5f, p);
 
-        c.drawCircle(flWheel.x, flWheel.y, 0.5f, p);
-        c.drawCircle(frWheel.x, frWheel.y, 0.5f, p);
-        c.drawCircle(rlWheel.x, rlWheel.y, 0.5f, p);
-        c.drawCircle(rrWheel.x, rrWheel.y, 0.5f, p);
+        c.drawCircle(this.flWheel.x, this.flWheel.y, 0.5f, p);
+        c.drawCircle(this.frWheel.x, this.frWheel.y, 0.5f, p);
+        c.drawCircle(this.rlWheel.x, this.rlWheel.y, 0.5f, p);
+        c.drawCircle(this.rrWheel.x, this.rrWheel.y, 0.5f, p);
 
-        c.drawCircle(flWheel.x, flWheel.y, frontWRad, p);
-        c.drawCircle(frWheel.x, frWheel.y, frontWRad, p);
+        c.drawCircle(this.flWheel.x, this.flWheel.y, this.frontWRad, p);
+        c.drawCircle(this.frWheel.x, this.frWheel.y, this.frontWRad, p);
     }
 }
