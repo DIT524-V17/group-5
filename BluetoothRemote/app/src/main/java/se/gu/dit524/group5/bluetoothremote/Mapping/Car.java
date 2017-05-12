@@ -30,6 +30,11 @@ public class Car {
     private final float frontWRad, rearWRad, innerWRad;
     private final float frontCRad, rearCRad, frontCHRad, rearCHRad;
 
+    public static final int FWD_RIGHT_ROTATION = 1;
+    public static final int FWD_LEFT_ROTATION  = 2;
+    public static final int REV_RIGHT_ROTATION = 4;
+    public static final int REV_LEFT_ROTATION  = 8;
+
     public Car(int x, int y, int frontAngle) {
         this.flWheel = new PointF(WHEEL_WIDTH /2, WHEEL_FRONT_OFFSET +WHEEL_HEIGHT /2);
         this.frWheel = new PointF(CAR_WIDTH -WHEEL_WIDTH /2, WHEEL_FRONT_OFFSET +WHEEL_HEIGHT /2);
@@ -223,34 +228,31 @@ public class Car {
     }
 
     public void rotate(int degrees) {
-        this.rotate(degrees, false);
+        this.rotate(degrees, degrees >= 0 ? FWD_LEFT_ROTATION : FWD_RIGHT_ROTATION);
     }
 
-    public void rotate(int degrees, boolean backwards) {
+    public void rotate(int degrees, int direction) {
+        PointF rotationCenter;
         double sin, cos;
-        if (!backwards) {
-            sin = Math.sin(Math.toRadians(degrees));
-            cos = Math.cos(Math.toRadians(degrees));
-        }
-        else {
-            sin = Math.sin(Math.toRadians(-degrees));
-            cos = Math.cos(Math.toRadians(-degrees));
+
+        switch (direction) {
+            case FWD_LEFT_ROTATION: rotationCenter = this.flWheel; break;
+            case FWD_RIGHT_ROTATION: rotationCenter = this.frWheel; break;
+            case REV_LEFT_ROTATION: rotationCenter = this.rlWheel; break;
+            case REV_RIGHT_ROTATION: rotationCenter = this.rrWheel; break;
+            default: return;
         }
 
-        if (degrees > 0) {
-            this.center = new PointF(
-                (float)(cos *(this.center.x -this.frWheel.x) -sin
-                            *(this.center.y -this.frWheel.y) +this.frWheel.x),
-                (float)(sin *(this.center.x -this.frWheel.x) +cos
-                            *(this.center.y -this.frWheel.y) +this.frWheel.y));
-        }
-        else if (degrees < 0) {
-            this.center = new PointF(
-                (float)(cos *(this.center.x -this.flWheel.x) -sin
-                            *(this.center.y -this.flWheel.y) +this.flWheel.x),
-                (float)(sin *(this.center.x -this.flWheel.x) +cos
-                            *(this.center.y -this.flWheel.y) +this.flWheel.y));
-        }
+        // TODO: should be adapted when rotating and going reverse becomes a thing
+        sin = Math.sin(Math.toRadians(-degrees));
+        cos = Math.cos(Math.toRadians(-degrees));
+
+        this.center = new PointF(
+            (float)(cos *(this.center.x -rotationCenter.x) -sin
+                        *(this.center.y -rotationCenter.y) +rotationCenter.x),
+            (float)(sin *(this.center.x -rotationCenter.x) +cos
+                        *(this.center.y -rotationCenter.y) +rotationCenter.y));
+
         this.front += degrees;
         if (this.front > 180) this.front -= 360;
         else if (this.front < -180) this.front += 360;
