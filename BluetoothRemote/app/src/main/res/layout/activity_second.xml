@@ -106,5 +106,14 @@
         tools:layout_editor_absoluteY="0dp"
         tools:layout_editor_absoluteX="0dp" />
 
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="LIST OF MAPS"
+        android:layout_alignParentTop="true"
+        android:layout_alignEnd="@+id/targetPosText"
+        android:onClick="sendMessageToMaps"/>
+
 
 </RelativeLayout>
