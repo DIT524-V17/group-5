@@ -9,79 +9,77 @@ import static se.gu.dit524.group5.bluetoothremote.Mapping.Constants.*;
 
 /**
  * Created by mghan on 2017-03-31.
- * Modified by julian.bock on 2017-04-03.
+ * Modified by julian.bock on 2017-04-03, 2017-05-12 (and following).
  */
 public class MapParser {
-    private int distanceFront, distanceBack;
-    private int angle, backAngle;
     private Map map;
 
-    public MapParser(Map map){
-        this.angle = 0;
-        this.backAngle = FRONT_SENSOR_TO_BACK_ANGLE;
-        this.distanceFront = 0;
-        this.distanceBack = 0;
+    MapParser(Map map){
         this.map = map;
     }
 
-    public void parse(int distanceFront, int distanceBack, int angle) {
+    void parse(int distanceFront, int distanceBack, int angle) {
         this.parse(distanceFront, distanceBack, angle, false);
     }
 
-    public void clean(int distanceFront, int distanceBack, int angle) {
+    void clean(int distanceFront, int distanceBack, int angle) {
         this.parse(distanceFront, distanceBack, angle, true);
     }
 
-    public void parse(int distanceFront, int distanceBack, int angle, boolean cleanup) {
-        this.angle = angle;
-        this.backAngle = angle - FRONT_SENSOR_TO_BACK_ANGLE;
-        this.distanceFront = distanceFront;
-        this.distanceBack = distanceBack;
+    private void parse(int distanceFront, int distanceBack, int angle, boolean cleanup) {
+        int frontAngle = (int) -this.map.getLastCar().front() -angle;
+        int backAngle  = frontAngle -180;
 
-        if (this.distanceFront <= SENSOR_MAX_DISTANCE && this.distanceFront > 0) {
-           setAsObstacle(new Point((int) (this.distanceFront * Math.cos((CAR_FRONT + this.angle) * (Math.PI / 180))) +this.map.getCar().x,
-                   (int) (this.distanceFront * Math.sin((CAR_FRONT +this.angle) * (Math.PI / 180))) +this.map.getCar().y), angle, cleanup);
+        double cos = Math.cos(Math.toRadians(frontAngle));
+        double sin = Math.sin(Math.toRadians(frontAngle));
+
+        if (distanceFront <= SENSOR_MAX_DISTANCE && distanceFront > 0) {
+           setAsObstacle(new Point((int) (distanceFront *cos +this.map.getCar().servo().x),
+                                   (int) (distanceFront *sin +this.map.getCar().servo().y)), frontAngle, cleanup);
         }
         else {
-            setAsObstacle(new Point((int) (SENSOR_MAX_DISTANCE * Math.cos((CAR_FRONT + this.angle) * (Math.PI / 180))) +this.map.getCar().x,
-                    (int) (SENSOR_MAX_DISTANCE * Math.sin((CAR_FRONT +this.angle) * (Math.PI / 180))) +this.map.getCar().y), angle, true);
+            setAsObstacle(new Point((int) (SENSOR_MAX_DISTANCE *cos +this.map.getCar().servo().x),
+                                    (int) (SENSOR_MAX_DISTANCE *sin +this.map.getCar().servo().y)), frontAngle, true);
         }
 
-        if (this. distanceBack <= SENSOR_MAX_DISTANCE && this.distanceBack > 0) {
-            setAsObstacle(new Point((int) (this.distanceBack * Math.cos((CAR_FRONT +this.backAngle) * (Math.PI / 180))) +this.map.getCar().x,
-                    (int) (this.distanceBack * Math.sin((CAR_FRONT +this.backAngle) * (Math.PI / 180))) +this.map.getCar().y), backAngle, cleanup);
+        cos = Math.cos(Math.toRadians(backAngle));
+        sin = Math.sin(Math.toRadians(backAngle));
+
+        if (distanceBack <= SENSOR_MAX_DISTANCE && distanceBack > 0) {
+            setAsObstacle(new Point((int) (distanceBack *cos +this.map.getCar().servo().x),
+                                    (int) (distanceBack *sin +this.map.getCar().servo().y)), backAngle, cleanup);
         }
         else {
-            setAsObstacle(new Point((int) (SENSOR_MAX_DISTANCE * Math.cos((CAR_FRONT +this.backAngle) * (Math.PI / 180))) +this.map.getCar().x,
-                    (int) (SENSOR_MAX_DISTANCE * Math.sin((CAR_FRONT +this.backAngle) * (Math.PI / 180))) +this.map.getCar().y), backAngle, true);
+            setAsObstacle(new Point((int) (SENSOR_MAX_DISTANCE *cos +this.map.getCar().servo().x),
+                                    (int) (SENSOR_MAX_DISTANCE *sin +this.map.getCar().servo().y)), backAngle, true);
         }
     }
 
-    public void setAsObstacle(Point coord, int angle, boolean cleanUp){
-        if(coord != null) {
-            Canvas c = new Canvas(map.getImage());
+    private void setAsObstacle(Point coord, int angle, boolean cleanUp){
+        if (coord != null) {
+            Canvas c = new Canvas(map.getMap());
             Paint p = new Paint();
             p.setAntiAlias(true);
             p.setStyle(Paint.Style.FILL_AND_STROKE);
 
-            double AN = Math.sqrt(Math.pow(map.getCar().x -coord.x, 2) +Math.pow(map.getCar().y -coord.y, 2));
+            double AN = Math.sqrt(Math.pow(map.getCar().servo().x -coord.x, 2) +Math.pow(map.getCar().servo().y -coord.y, 2));
             double GK = Math.tan(Math.toRadians(-7.5)) *AN;
             double HY = Math.sqrt(Math.pow(AN, 2) +Math.pow(GK, 2));
 
             if (cleanUp) HY -= 1;
-            Point A = new Point(map.getCar().x, map.getCar().y), D = new Point(), E = new Point();
-            Point B = new Point(
-                    (int)(map.getCar().x +HY *Math.sin(Math.toRadians(angle -7.5))),
-                    (int)(map.getCar().y -HY *Math.cos(Math.toRadians(angle -7.5))));
-            Point C = new Point(
-                    (int)(map.getCar().x +HY *Math.sin(Math.toRadians(angle +7.5))),
-                    (int)(map.getCar().y -HY *Math.cos(Math.toRadians(angle +7.5))));
+            Point A = new Point((int)map.getCar().servo().x, (int)map.getCar().servo().y),
+                  D = new Point(), E = new Point();
+
+            Point B = new Point((int)(map.getCar().servo().x +HY *Math.sin(Math.toRadians(angle -7.5))),
+                                (int)(map.getCar().servo().y -HY *Math.cos(Math.toRadians(angle -7.5))));
+            Point C = new Point((int)(map.getCar().servo().x +HY *Math.sin(Math.toRadians(angle +7.5))),
+                                (int)(map.getCar().servo().y -HY *Math.cos(Math.toRadians(angle +7.5))));
 
             if (!cleanUp) {
-                D = new Point((int)(map.getCar().x +(HY +1) *Math.sin(Math.toRadians(angle -7.5))),
-                              (int)(map.getCar().y -(HY +1) *Math.cos(Math.toRadians(angle -7.5))));
-                E = new Point((int)(map.getCar().x +(HY +1) *Math.sin(Math.toRadians(angle +7.5))),
-                              (int)(map.getCar().y -(HY +1) *Math.cos(Math.toRadians(angle +7.5))));
+                  D = new Point((int)(map.getCar().servo().x +(HY +1) *Math.sin(Math.toRadians(angle -7.5))),
+                                (int)(map.getCar().servo().y -(HY +1) *Math.cos(Math.toRadians(angle -7.5))));
+                  E = new Point((int)(map.getCar().servo().x +(HY +1) *Math.sin(Math.toRadians(angle +7.5))),
+                                (int)(map.getCar().servo().y -(HY +1) *Math.cos(Math.toRadians(angle +7.5))));
             }
 
             if (cleanUp) {

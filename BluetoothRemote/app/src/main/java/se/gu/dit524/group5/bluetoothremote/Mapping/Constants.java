@@ -2,15 +2,12 @@ package se.gu.dit524.group5.bluetoothremote.Mapping;
 
 /**
  * Created by mghan on 2017-03-31.
- * Modified by julian.bock on 2017-05-08.
+ * Modified by julian.bock on 2017-05-08 (and following).
  */
 public class Constants {
 
     public static final int SERVO_TURN_DEGREES = 4;
     public static final int SENSOR_MAX_DISTANCE = 150;
-    public static final int SENSOR_GREATER_THAN_MAX = 0;
-    public static final int FRONT_SENSOR_TO_BACK_ANGLE = 180;
-    public static final int CAR_FRONT = -90;
 
     public static final float CAR_WIDTH =           15.5f;
     public static final float CAR_HEIGHT =          26.5f;

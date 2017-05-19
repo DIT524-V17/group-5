@@ -5,22 +5,25 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PointF;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
 
 import static se.gu.dit524.group5.bluetoothremote.Mapping.Constants.*;
 
 /**
- * Created by julian.bock on 2017-05-08.
- * (and before that some day around Easter...)
+ * Created by julian.bock on 2017-05-08 (and before that some day around Easter).
  */
 
 public class Car {
-    private Path   car, cupholder;
-    private Path[] wheels;
-    private double front;
-    private PointF center, servo;
-    private PointF flWheel, frWheel, rlWheel, rrWheel;
-    private PointF flCorner, frCorner, rlCorner, rrCorner;
-    private PointF flCHCorner, frCHCorner, rlCHCorner, rrCHCorner;
+    private boolean shaped;
+    private Path    car, cupholder;
+    private Path[]  wheels;
+    private float   front, rotationCircleRadius;
+    private PointF  rotationCenter;
+    private PointF  center, servo;
+    private PointF  flWheel, frWheel, rlWheel, rrWheel;
+    private PointF  flCorner, frCorner, rlCorner, rrCorner;
+    private PointF  flCHCorner, frCHCorner, rlCHCorner, rrCHCorner;
 
     private final float flWAngle, frWAngle, rlWAngle, rrWAngle;
     private final float flCAngle, frCAngle, rlCAngle, rrCAngle;
@@ -30,12 +33,19 @@ public class Car {
     private final float frontWRad, rearWRad, innerWRad;
     private final float frontCRad, rearCRad, frontCHRad, rearCHRad;
 
-    public static final int FWD_RIGHT_ROTATION = 1;
-    public static final int FWD_LEFT_ROTATION  = 2;
-    public static final int REV_RIGHT_ROTATION = 4;
-    public static final int REV_LEFT_ROTATION  = 8;
+    private static final int FWD_RIGHT_ROTATION = 1;
+    private static final int FWD_LEFT_ROTATION  = 2;
+    private static final int REV_RIGHT_ROTATION = 4;
+    private static final int REV_LEFT_ROTATION  = 8;
 
-    public Car(int x, int y, int frontAngle) {
+    public Car(Car source) {
+        this(source.center().x, source.center().y, source.front());
+        this.reshape();
+
+        this.rotationCenter = source.lastRotationCenter();
+    }
+
+    public Car(float x, float y, float frontAngle) {
         this.flWheel = new PointF(WHEEL_WIDTH /2, WHEEL_FRONT_OFFSET +WHEEL_HEIGHT /2);
         this.frWheel = new PointF(CAR_WIDTH -WHEEL_WIDTH /2, WHEEL_FRONT_OFFSET +WHEEL_HEIGHT /2);
         this.rlWheel = new PointF(WHEEL_WIDTH /2, CAR_HEIGHT -WHEEL_REAR_OFFSET -WHEEL_HEIGHT /2);
@@ -94,11 +104,14 @@ public class Car {
         this.rearCHRad =  (float) Math.sqrt(Math.pow(this.rrCHCorner.x -this.center.x, 2)
                                            +Math.pow(this.rrCHCorner.y -this.center.y, 2));
 
-        this.innerWRad =      (float)(Math.sqrt(Math.pow(WHEEL_WIDTH, 2) +Math.pow(WHEEL_HEIGHT, 2)) /2);
+        this.innerWRad      = (float)(Math.sqrt(Math.pow(WHEEL_WIDTH, 2) +Math.pow(WHEEL_HEIGHT, 2)) /2);
         this.innerWflCAngle = (float)(90 +Math.toDegrees(Math.atan((WHEEL_WIDTH /2) /(WHEEL_HEIGHT /2))));
         this.innerWfrCAngle = (float)(90 -Math.toDegrees(Math.atan((WHEEL_WIDTH /2) /(WHEEL_HEIGHT /2))));
         this.innerWrlCAngle = (float)(-90 -Math.toDegrees(Math.atan((WHEEL_WIDTH /2) /(WHEEL_HEIGHT /2))));
         this.innerWrrCAngle = (float)(-90 +Math.toDegrees(Math.atan((WHEEL_WIDTH /2) /(WHEEL_HEIGHT /2))));
+
+        this.rotationCircleRadius = (float) Math.sqrt(
+                Math.pow(CAR_HEIGHT -WHEEL_FRONT_OFFSET -WHEEL_HEIGHT /2 +CUPHOLDER_HEIGHT, 2)+ Math.pow(CAR_WIDTH, 2));
 
         this.center = new PointF(x, y);
         this.front = frontAngle;
@@ -161,9 +174,12 @@ public class Car {
 
         this.servo =  new PointF((this.rlWheel.x +this.rrWheel.x) /2,
                                  (this.rlWheel.y +this.rrWheel.y) /2);
+        this.shaped = false;
     }
 
     private void reshape() {
+        if (shaped) return;
+
         this.car = new Path();
         this.car.moveTo(this.flCorner.x, this.flCorner.y);
         this.car.lineTo(this.frCorner.x, this.frCorner.y);
@@ -213,9 +229,11 @@ public class Car {
             this.wheels[i].lineTo(rl.x, rl.y);
             this.wheels[i].lineTo(fl.x, fl.y);
         }
+
+        this.shaped = true;
     }
 
-    public double front() {
+    public float front() {
         return this.front;
     }
 
@@ -227,51 +245,89 @@ public class Car {
         return this.servo;
     }
 
-    public void rotate(int degrees) {
-        this.rotate(degrees, degrees >= 0 ? FWD_LEFT_ROTATION : FWD_RIGHT_ROTATION);
+    public PointF lastRotationCenter() {
+        return this.rotationCenter;
     }
 
-    public void rotate(int degrees, int direction) {
-        PointF rotationCenter;
+    public float rotationCircleRadius() {
+        return this.rotationCircleRadius;
+    }
+
+    public void rotate(int degrees) {
+        this.rotate(degrees, degrees >= 0 ? FWD_LEFT_ROTATION : FWD_RIGHT_ROTATION, true);
+    }
+
+    private void rotate(int degrees, boolean relocate) {
+        this.rotate(degrees, degrees >= 0 ? FWD_LEFT_ROTATION : FWD_RIGHT_ROTATION, relocate);
+    }
+
+    private void rotate(int degrees, int direction, boolean relocate) {
         double sin, cos;
 
         switch (direction) {
-            case FWD_LEFT_ROTATION: rotationCenter = this.flWheel; break;
-            case FWD_RIGHT_ROTATION: rotationCenter = this.frWheel; break;
-            case REV_LEFT_ROTATION: rotationCenter = this.rlWheel; break;
-            case REV_RIGHT_ROTATION: rotationCenter = this.rrWheel; break;
+            case FWD_LEFT_ROTATION: this.rotationCenter = this.flWheel; break;
+            case FWD_RIGHT_ROTATION: this.rotationCenter = this.frWheel; break;
+            case REV_LEFT_ROTATION: this.rotationCenter = this.rlWheel; break;
+            case REV_RIGHT_ROTATION: this.rotationCenter = this.rrWheel; break;
             default: return;
         }
 
-        // TODO: should be adapted when rotating and going reverse becomes a thing
+        // TODO: the following should be adapted in case rotating and
+        //       going reverse at the same time becomes a thing...
+
         sin = Math.sin(Math.toRadians(-degrees));
         cos = Math.cos(Math.toRadians(-degrees));
 
         this.center = new PointF(
-            (float)(cos *(this.center.x -rotationCenter.x) -sin
-                        *(this.center.y -rotationCenter.y) +rotationCenter.x),
-            (float)(sin *(this.center.x -rotationCenter.x) +cos
-                        *(this.center.y -rotationCenter.y) +rotationCenter.y));
+            (float)(cos *(this.center.x -this.rotationCenter.x) -sin
+                        *(this.center.y -this.rotationCenter.y) +this.rotationCenter.x),
+            (float)(sin *(this.center.x -this.rotationCenter.x) +cos
+                        *(this.center.y -this.rotationCenter.y) +this.rotationCenter.y));
 
         this.front += degrees;
         if (this.front > 180) this.front -= 360;
         else if (this.front < -180) this.front += 360;
-
-        this.relocate();
+        if (relocate) this.relocate();
     }
 
     public void move(int centimeters) {
+        this.move(centimeters, true);
+    }
+
+    private void move(int centimeters, boolean relocate) {
         double sin, cos;
 
         sin = Math.sin(Math.toRadians(this.front));
         cos = Math.cos(Math.toRadians(this.front));
 
         this.center = new PointF((float)(center.x -sin *centimeters), (float)(center.y -cos *centimeters));
+        if (relocate) this.relocate();
+    }
+
+    public void alterPosition(float x, float y) {
+        this.center = new PointF(this.center.x +x, this.center.y +y);
         this.relocate();
     }
 
+    public int[] findPath(PointF dest, float radius) {
+        int directions[] = new int[2];
+        for (int angle = -180; angle <= 180; angle++) {
+            Car c = new Car(this.center.x, this.center.y, this.front);
+            c.rotate(angle, false);
+            for (int distance = 0; distance < radius; distance++) {
+                c.move(1, false);
+                if (Math.abs(Math.round(c.center().x) -Math.round(dest.x)) <= 1 &&
+                        Math.abs(Math.round(c.center().y) -Math.round(dest.y)) <= 1) {
+                    directions[0] = angle;
+                    directions[1] = distance;
+                    return directions;
+                }
+            }
+        }
+        return directions;
+    }
+
     public void draw(Canvas c) {
-        this.erase(c);
         this.reshape();
 
         Paint p = new Paint();
@@ -295,20 +351,36 @@ public class Car {
         for (Path wheel : this.wheels) c.drawPath(wheel, p);
     }
 
-    private void erase(Canvas c) {
-        if (this.car == null || this.cupholder == null || this.wheels.length == 0) return;
+    public void drawShade(Canvas c) {
+        this.reshape();
+
         Paint p = new Paint();
-        p.setStrokeWidth(2.5f);
+        p.setStrokeWidth(1.0f);
         p.setAntiAlias(true);
         p.setStyle(Paint.Style.FILL_AND_STROKE);
 
-        p.setColor(Color.argb(0xff, 0xff, 0xff, 0xff));
+        p.setColor(Color.argb(0xff, 0xaa, 0xaa, 0xaa));
+        c.drawPath(this.car, p);
+
+        p.setColor(Color.argb(0xff, 0x99, 0x99, 0x99));
+        c.drawPath(this.cupholder, p);
+
+        p.setColor(Color.argb(0xff, 0x66, 0x66, 0x66));
+        for (Path wheel : this.wheels) c.drawPath(wheel, p);
+    }
+
+    public void erase(Canvas c) {
+        if (this.car == null || this.cupholder == null || this.wheels == null) return;
+        if (!this.shaped) this.reshape();
+
+        Paint p = new Paint();
+        p.setStrokeWidth(3.0f);
+        p.setAntiAlias(true);
+        p.setStyle(Paint.Style.FILL_AND_STROKE);
+        p.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
 
         c.drawPath(this.car, p);
-        c.drawCircle(this.center.x, this.center.y, 4.0f, p);
-        c.drawCircle(this.servo.x, this.servo.y, 2.5f, p);
         c.drawPath(this.cupholder, p);
-        for (Path wheel : this.wheels) c.drawPath(wheel, p);
     }
 
     public void drawParticles(Canvas c) {
