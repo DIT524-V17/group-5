@@ -18,7 +18,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="group5.marbleapp.ActivitySecond"></activity>
+        <activity android:name="se.gu.dit524.group5.bluetoothremote.ActivitySecond"></activity>
+        <activity android:name="se.gu.dit524.group5.bluetoothremote.ActivityThird"></activity>
     </application>
 
 </manifest>
