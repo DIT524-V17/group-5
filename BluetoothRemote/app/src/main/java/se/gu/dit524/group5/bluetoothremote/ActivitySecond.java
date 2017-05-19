@@ -1,7 +1,9 @@
 package se.gu.dit524.group5.bluetoothremote;
 
 import android.content.Intent;
-import android.graphics.Point;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.PointF;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
@@ -17,19 +19,19 @@ import java.util.ArrayList;
 
 import se.gu.dit524.group5.bluetoothremote.Mapping.Map;
 
-import static se.gu.dit524.group5.bluetoothremote.Mapping.Constants.SERVO_TURN_DEGREES;
+import static se.gu.dit524.group5.bluetoothremote.Mapping.Constants.*;
 
 public class ActivitySecond extends AppCompatActivity {
 
     private ArrayList<ScanResult> previousReadings;
     private Button connect, scan, reset;
-    private ToggleButton movement;
+    private ToggleButton movement, shadeToggle, routeToggle;
     private Map map;
     private ImageView mapView;
     private BluetoothService btService;
     private SeekBar throttleBar, angleBar;
-    private Point lastSteeringDirection;
-    private TextView posView, targetView;
+    private PointF lastSteeringDirection;
+    private TextView posView, targetView, listOfMaps;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,10 +49,22 @@ public class ActivitySecond extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 lastSteeringDirection = null;
-                map = new Map();
+                map = new Map(btService);
                 redrawMap();
             }
         });
+
+        listOfMaps = (TextView) this.findViewById(R.id.listOfMaps);
+        shadeToggle = (ToggleButton) this.findViewById(R.id.shadeToggle);
+        routeToggle = (ToggleButton) this.findViewById(R.id.routeToggle);
+        View.OnClickListener mapToggleOCL = new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                redrawMap();
+            }
+        };
+        shadeToggle.setOnClickListener(mapToggleOCL);
+        routeToggle.setOnClickListener(mapToggleOCL);
 
         movement = (ToggleButton) this.findViewById(R.id.movementToggle);
         movement.setOnClickListener(new View.OnClickListener() {
@@ -64,6 +78,10 @@ public class ActivitySecond extends AppCompatActivity {
                     angleBar.setFocusable(false);
                     throttleBar.setVisibility(View.INVISIBLE);
                     angleBar.setVisibility(View.INVISIBLE);
+                    shadeToggle.setVisibility(View.VISIBLE);
+                    routeToggle.setVisibility(View.VISIBLE);
+                    listOfMaps.setVisibility(View.VISIBLE);
+
                 }
                 else {
                     reset.setVisibility(View.INVISIBLE);
@@ -73,6 +91,9 @@ public class ActivitySecond extends AppCompatActivity {
                     angleBar.setFocusable(true);
                     throttleBar.setVisibility(View.VISIBLE);
                     angleBar.setVisibility(View.VISIBLE);
+                    shadeToggle.setVisibility(View.INVISIBLE);
+                    routeToggle.setVisibility(View.INVISIBLE);
+                    listOfMaps.setVisibility(View.INVISIBLE);
                 }
             }
         });
@@ -84,9 +105,9 @@ public class ActivitySecond extends AppCompatActivity {
                 if (mapView.getVisibility() == View.INVISIBLE) return false;
 
                 float mvWidth = mapView.getMeasuredWidth();
-                float widthCR = mvWidth /map.getImage().getWidth();
+                float widthCR = mvWidth /map.getMap().getWidth();
                 float mvHeight = mapView.getMeasuredHeight();
-                float heightCR = mvHeight /map.getImage().getHeight();
+                float heightCR = mvHeight /map.getMap().getHeight();
 
                 float x = event.getX();
                 if (x < 0) x = 0;
@@ -95,7 +116,7 @@ public class ActivitySecond extends AppCompatActivity {
                 if (y < 0) y = 0;
                 else if (y >= mapView.getMeasuredHeight()) y = mapView.getMeasuredHeight();
 
-                Point dest = new Point((int)(x /widthCR), (int)(y /heightCR));
+                PointF dest = new PointF(x /widthCR, y /heightCR);
 
                 targetView.setVisibility(View.VISIBLE);
                 updateTargetView(dest);
@@ -103,10 +124,23 @@ public class ActivitySecond extends AppCompatActivity {
                 if (event.getAction() == MotionEvent.ACTION_UP) {
                     targetView.setVisibility(View.INVISIBLE);
 
-                    lastSteeringDirection = new Point(dest.x -map.getCar().x, dest.y -map.getCar().y);
-                    byte bx = (byte)(Math.abs(lastSteeringDirection.x) &0x7F);
+                    lastSteeringDirection = new PointF(dest.x -map.getCar().center().x, dest.y -map.getCar().center().y);
+                    map.updateCarPosition(lastSteeringDirection.x, lastSteeringDirection.y, true, true);
+
+                    // Is MARBLE out of order? Use the snippet below.
+                    /*
+                    lastSteeringDirection = new PointF(dest.x -map.getCar().center().x, dest.y -map.getCar().center().y);
+                    if (map.updateCarPosition(lastSteeringDirection.x, lastSteeringDirection.y, true, true)) {
+                        updateCarPosition();
+                    } */
+
+                    /* * *
+                     * THE FOLLOWING CODE IS OLD AND WEIRD... THINK TWICE BEFORE UNCOMMENTING!
+                     *
+                    lastSteeringDirection = new PointF(dest.x -map.getCar().center().x, dest.y -map.getCar().center().y);
+                    byte bx = (byte)(Math.abs((int)lastSteeringDirection.x) &0x7F);
                     bx = (byte)(lastSteeringDirection.x >= 0 ? bx : (bx |0b10000000));
-                    byte by = (byte)(Math.abs(lastSteeringDirection.y) &0x7F);
+                    byte by = (byte)(Math.abs((int)lastSteeringDirection.y) &0x7F);
                     by = (byte)(lastSteeringDirection.y >= 0 ? by : (by |0b10000000));
 
                     if (btService != null && !btService.awaitingSteeringCallback) {
@@ -116,11 +150,7 @@ public class ActivitySecond extends AppCompatActivity {
                         // System.out.println("X: " +(((bx & 0x80) >= 1) ? "-" : "+") +(bx & 0x7F));
                         // System.out.println("Y: " +(((by & 0x80) >= 1) ? "-" : "+") +(by & 0x7F));
                     }
-
-                    // Is MARBLE out of order? Use the snippet below.
-                    /*
-                    lastSteeringDirection = new Point(dest.x -map.getCar().x, dest.y -map.getCar().y);
-                    updateCarPosition(); */
+                    * * */
                 }
                 return true;
             }
@@ -137,7 +167,9 @@ public class ActivitySecond extends AppCompatActivity {
                     btService.scanCallback = ActivitySecond.this.getClass()
                             .getMethod("updateMap", new Class[]{ ScanResult.class });
                     btService.automaticSteeringCallback = ActivitySecond.this.getClass()
-                            .getMethod("updateCarPosition", new Class[]{ });}
+                            .getMethod("updateCarPosition", new Class[]{ });
+                    map.setBluetoothInterface(btService);
+                }
                 catch (Exception e){ e.printStackTrace(); }
             }
         });
@@ -146,7 +178,8 @@ public class ActivitySecond extends AppCompatActivity {
         scan.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (btService != null) btService.send(new Instruction(new byte[]{ (byte)0xF1, SERVO_TURN_DEGREES }, -1000));
+                if (btService != null && !btService.busy())
+                    btService.send(new Instruction(new byte[]{ (byte)0xF1, SERVO_TURN_DEGREES }, 1, BluetoothService.SCANNING), true);
 
                 // Is MARBLE out of order? Use the snippet below.
                 /*
@@ -155,8 +188,8 @@ public class ActivitySecond extends AppCompatActivity {
                 int pos = 0;
                 while (pos < fakeResults.length /3) {
                     fakeResults[pos *3 +0] = (byte)(pos *SERVO_TURN_DEGREES);
-                    fakeResults[pos *3 +1] = (byte)(SENSOR_MAX_DISTANCE /2 +rnd.nextInt(SENSOR_MAX_DISTANCE /2));
-                    fakeResults[pos *3 +2] = (byte)(SENSOR_MAX_DISTANCE /2 +rnd.nextInt(SENSOR_MAX_DISTANCE /2));
+                    fakeResults[pos *3 +1] = (byte)(SENSOR_MAX_DISTANCE /2 +pos *2);
+                    fakeResults[pos *3 +2] = (byte)(SENSOR_MAX_DISTANCE /2 +pos *2);
                     pos++;
                 }
                 updateMap(new ScanResult(fakeResults, 0, fakeResults.length)); */
@@ -174,7 +207,7 @@ public class ActivitySecond extends AppCompatActivity {
                 if (event.getAction() == MotionEvent.ACTION_UP) {
                     throttleBar.setProgress(throttleBar.getMax() /2);
                     angleBar.setProgress((angleBar.getMax() /2));
-                    if (btService != null) btService.send(new Instruction(new byte[]{0x12, speed, angle}, 1), true);
+                    if (btService != null) btService.send(new Instruction(new byte[]{0x12, speed, angle}), true);
                 }
                 else {
 
@@ -196,7 +229,7 @@ public class ActivitySecond extends AppCompatActivity {
                     if (angleBar.getProgress() > angleBar.getMax() / 2) angle = (byte) (1 << 7);
                     angle += Math.abs(angleBar.getProgress() - angleBar.getMax() / 2);
 
-                    if (btService != null) btService.send(new Instruction(new byte[]{0x12, speed, angle}, 0));
+                    if (btService != null) btService.send(new Instruction(new byte[]{0x12, speed, angle}));
                 }
 
                 // System.out.println("speed: " +(((speed & 0x80) >= 1) ? "-" : "+") +(speed & 0x7F));
@@ -208,22 +241,26 @@ public class ActivitySecond extends AppCompatActivity {
     }
 
     public void updateMap(ScanResult scanResult) {
-        scanResult.carOffset = new Point(
-                this.map.getCar().x - this.map.getLastScanCar().x,
-                this.map.getCar().y - this.map.getLastScanCar().y);
-        this.map.setLastScanCar(this.map.getCar());
+        scanResult.offsetToPreviousScan = new PointF(
+                this.map.getCar().servo().x -this.map.getLastScanCar().servo().x,
+                this.map.getCar().servo().y -this.map.getLastScanCar().servo().y);
 
+        this.map.setLastScanCar(this.map.getCar());
         for (ScanResult.SingleScan scan : scanResult.scans) this.map.processMeasurement(scan);
+
+        // TODO: generate some kind of "obstacle probability" instead of black/white pixels
+        /*
         previousReadings.add(scanResult);
 
         this.map.setCar(this.map.getLastScanCar());
-        for (ScanResult.SingleScan scan : scanResult.scans) this.map.removeCollidingObstacles(scan);
+        for (ScanResult.SingleScan scan : scanResult.scans) this.map.removeCollidingObstacles(scan); */
+
         redrawMap();
     }
 
     public void updateCarPosition() {
-        this.map.setLastCar(this.map.getCar());
-        this.map.updateCarPosition(this.lastSteeringDirection.x, this.lastSteeringDirection.y, true);
+        // TODO: think about blocking any further map interaction until MARBLE's done.
+
         this.lastSteeringDirection = null;
         redrawMap();
     }
@@ -233,13 +270,20 @@ public class ActivitySecond extends AppCompatActivity {
         handler.post(new Runnable() {
             @Override
             public void run() {
-                mapView.setImageBitmap(map.getImage());
-                updatePosView(map.getCar());
+                Bitmap bmp = Bitmap.createBitmap(map.getMap());
+                Canvas c = new Canvas(bmp);
+
+                if (routeToggle.isChecked()) c.drawBitmap(map.getRouteOverlay(), 0, 0, null);
+                if (shadeToggle.isChecked()) c.drawBitmap(map.getShadeOverlay(), 0, 0, null);
+                c.drawBitmap(map.getCarOverlay(), 0, 0, null);
+
+                mapView.setImageBitmap(bmp);
+                updatePosView(map.getCar().center());
             }
         });
     }
 
-    public void updatePosView(final Point car) {
+    public void updatePosView(final PointF car) {
         Handler handler = new Handler(getBaseContext().getMainLooper());
         handler.post(new Runnable() {
             @Override
@@ -249,7 +293,7 @@ public class ActivitySecond extends AppCompatActivity {
         });
     }
 
-    public void updateTargetView(final Point target) {
+    public void updateTargetView(final PointF target) {
         Handler handler = new Handler(getBaseContext().getMainLooper());
         handler.post(new Runnable() {
             @Override
@@ -259,5 +303,8 @@ public class ActivitySecond extends AppCompatActivity {
         });
     }
 
-
+    public void sendMessageToMaps(View view){
+        Intent intent = new Intent(this, ActivityThird.class);
+        this.startActivity(intent);
+    }
 }

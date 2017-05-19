@@ -7,14 +7,20 @@ import android.support.annotation.NonNull;
  */
 
 public class Instruction implements Comparable {
-    private byte[]   cmd;
-    private byte     crc;
-    private long     priority;
+    private byte[] cmd;
+    private byte   crc;
+    private long   priority;
+    private int    btState;
 
-    public Instruction(byte[] cmd, int priority) {
+    public Instruction(byte[] cmd) {
+        this(cmd, 0, BluetoothService.IDLE);
+    }
+
+    public Instruction(byte[] cmd, int priority, int btState) {
         this.cmd = cmd;
         this.crc = calculateCRC8();
-        this.priority = System.currentTimeMillis() -priority *100;
+        this.priority = System.currentTimeMillis() -priority *1000;
+        this.btState = btState;
     }
 
     public byte[] getCmd() {
@@ -26,6 +32,10 @@ public class Instruction implements Comparable {
 
     public long getPriority() {
         return priority;
+    }
+
+    public int getBtState() {
+        return btState;
     }
 
     @Override

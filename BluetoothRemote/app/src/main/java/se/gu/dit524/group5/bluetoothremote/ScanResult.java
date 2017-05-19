@@ -1,6 +1,7 @@
 package se.gu.dit524.group5.bluetoothremote;
 
 import android.graphics.Point;
+import android.graphics.PointF;
 
 import java.util.ArrayList;
 
@@ -10,7 +11,7 @@ import java.util.ArrayList;
 
 public class ScanResult {
     ArrayList<SingleScan> scans;
-    Point carOffset;
+    PointF offsetToPreviousScan;
 
     public ScanResult(byte[] data, int offset, int length) {
         if (offset < 0 || offset +length > data.length) return;
