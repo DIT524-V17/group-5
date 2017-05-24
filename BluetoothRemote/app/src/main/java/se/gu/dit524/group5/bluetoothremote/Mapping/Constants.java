@@ -18,4 +18,7 @@ public class Constants {
     public static final float WHEEL_FRONT_OFFSET =  5.25f;
     public static final float WHEEL_REAR_OFFSET =   2.0f;
     public static final float CUPHOLDER_OFFSET =    (CAR_WIDTH -CUPHOLDER_WIDTH) /2;
+
+    public static final int OBSTACLE_INTENSITY =    0xFF;
+    public static final int FREE_SPACE_INTENSITY =  0x18;
 }

@@ -11,8 +11,8 @@
 
     <ImageView
         android:id="@+id/mapView"
-        android:layout_width="300dp"
-        android:layout_height="300dp"
+        android:layout_width="350dp"
+        android:layout_height="350dp"
         android:layout_alignParentBottom="false"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="24dp"
@@ -100,18 +100,17 @@
         android:id="@+id/targetPosText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignEnd="@+id/mapView"
-        android:layout_alignTop="@+id/carPosText"
+        android:layout_below="@+id/carPosText"
         android:visibility="invisible"
         tools:layout_editor_absoluteY="0dp"
-        tools:layout_editor_absoluteX="0dp" />
+        tools:layout_editor_absoluteX="0dp"
+        android:layout_alignStart="@+id/carPosText"/>
 
     <ToggleButton
         android:id="@+id/shadeToggle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_above="@+id/scanButton"
-        android:layout_toStartOf="@+id/throttleBar"
+        android:layout_above="@+id/movementToggle"
         android:checked="false"
         android:visibility="invisible"
         android:textOff="SHADES"
@@ -122,7 +121,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_above="@+id/movementToggle"
-        android:layout_toEndOf="@+id/shadeToggle"
+        android:layout_toEndOf="@id/scanButton"
         android:checked="true"
         android:visibility="invisible"
         android:textOff="ROUTE"
@@ -134,7 +133,7 @@
         android:layout_height="wrap_content"
         android:text="LIST OF MAPS"
         android:layout_alignParentTop="true"
-        android:layout_alignEnd="@+id/targetPosText"
+        android:layout_alignEnd="@+id/mapView"
         android:visibility="invisible"
         android:onClick="sendMessageToMaps"/>
 

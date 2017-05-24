@@ -411,4 +411,13 @@ public class Car {
         c.drawCircle(this.flWheel.x, this.flWheel.y, this.frontWRad, p);
         c.drawCircle(this.frWheel.x, this.frWheel.y, this.frontWRad, p);
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof Car) {
+            Car car = (Car) obj;
+            return this.center().equals(car.center()) && this.front() == car.front();
+        }
+        else return false;
+    }
 }

@@ -1,17 +1,16 @@
 package se.gu.dit524.group5.bluetoothremote;
 
-import android.graphics.Point;
-import android.graphics.PointF;
-
 import java.util.ArrayList;
+
+import se.gu.dit524.group5.bluetoothremote.Mapping.Car;
 
 /**
  * Created by julian.bock on 2017-03-31.
  */
 
 public class ScanResult {
-    ArrayList<SingleScan> scans;
-    PointF offsetToPreviousScan;
+    private ArrayList<SingleScan> scans;
+    private Car car;
 
     public ScanResult(byte[] data, int offset, int length) {
         if (offset < 0 || offset +length > data.length) return;
@@ -19,6 +18,18 @@ public class ScanResult {
         for (int i = offset; i < offset +length; i += 3) {
             scans.add(new SingleScan(data[i], data[i+1], data[i+2]));
         }
+    }
+
+    public void setCar(Car car) {
+        this.car = new Car(car);
+    }
+
+    public Car car() {
+        return this.car;
+    }
+
+    public ArrayList<SingleScan> scans() {
+        return this.scans;
     }
 
     public class SingleScan {

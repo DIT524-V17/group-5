@@ -15,7 +15,7 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
-import java.util.ArrayList;
+import java.util.Random;
 
 import se.gu.dit524.group5.bluetoothremote.Mapping.Map;
 
@@ -23,7 +23,6 @@ import static se.gu.dit524.group5.bluetoothremote.Mapping.Constants.*;
 
 public class ActivitySecond extends AppCompatActivity {
 
-    private ArrayList<ScanResult> previousReadings;
     private Button connect, scan, reset;
     private ToggleButton movement, shadeToggle, routeToggle;
     private Map map;
@@ -39,8 +38,6 @@ public class ActivitySecond extends AppCompatActivity {
         setContentView(R.layout.activity_second);
 
         map = new Map();
-        previousReadings = new ArrayList<>();
-
         posView = (TextView) this.findViewById(R.id.carPosText);
         targetView = (TextView) this.findViewById(R.id.targetPosText);
 
@@ -122,17 +119,18 @@ public class ActivitySecond extends AppCompatActivity {
                 updateTargetView(dest);
 
                 if (event.getAction() == MotionEvent.ACTION_UP) {
+                    /*
                     targetView.setVisibility(View.INVISIBLE);
 
                     lastSteeringDirection = new PointF(dest.x -map.getCar().center().x, dest.y -map.getCar().center().y);
-                    map.updateCarPosition(lastSteeringDirection.x, lastSteeringDirection.y, true, true);
+                    map.updateCarPosition(lastSteeringDirection.x, lastSteeringDirection.y, true, true); */
 
                     // Is MARBLE out of order? Use the snippet below.
-                    /*
+
                     lastSteeringDirection = new PointF(dest.x -map.getCar().center().x, dest.y -map.getCar().center().y);
                     if (map.updateCarPosition(lastSteeringDirection.x, lastSteeringDirection.y, true, true)) {
                         updateCarPosition();
-                    } */
+                    }
 
                     /* * *
                      * THE FOLLOWING CODE IS OLD AND WEIRD... THINK TWICE BEFORE UNCOMMENTING!
@@ -182,17 +180,19 @@ public class ActivitySecond extends AppCompatActivity {
                     btService.send(new Instruction(new byte[]{ (byte)0xF1, SERVO_TURN_DEGREES }, 1, BluetoothService.SCANNING), true);
 
                 // Is MARBLE out of order? Use the snippet below.
-                /*
+
                 byte[] fakeResults = new byte[180 /SERVO_TURN_DEGREES *3];
                 Random rnd = new Random();
                 int pos = 0;
                 while (pos < fakeResults.length /3) {
                     fakeResults[pos *3 +0] = (byte)(pos *SERVO_TURN_DEGREES);
-                    fakeResults[pos *3 +1] = (byte)(SENSOR_MAX_DISTANCE /2 +pos *2);
-                    fakeResults[pos *3 +2] = (byte)(SENSOR_MAX_DISTANCE /2 +pos *2);
+                    fakeResults[pos *3 +1] = (byte)(rnd.nextInt(SENSOR_MAX_DISTANCE));
+                    fakeResults[pos *3 +2] = (byte)(rnd.nextInt(SENSOR_MAX_DISTANCE));
+                    //fakeResults[pos *3 +1] = (byte)(SENSOR_MAX_DISTANCE /2 /*+pos *2*/);
+                    //fakeResults[pos *3 +2] = (byte)(SENSOR_MAX_DISTANCE /2 /*+pos *2*/);
                     pos++;
                 }
-                updateMap(new ScanResult(fakeResults, 0, fakeResults.length)); */
+                updateMap(new ScanResult(fakeResults, 0, fakeResults.length));
             }
         });
 
@@ -241,21 +241,25 @@ public class ActivitySecond extends AppCompatActivity {
     }
 
     public void updateMap(ScanResult scanResult) {
-        scanResult.offsetToPreviousScan = new PointF(
-                this.map.getCar().servo().x -this.map.getLastScanCar().servo().x,
-                this.map.getCar().servo().y -this.map.getLastScanCar().servo().y);
-
+        scanResult.setCar(this.map.getCar());
         this.map.setLastScanCar(this.map.getCar());
-        for (ScanResult.SingleScan scan : scanResult.scans) this.map.processMeasurement(scan);
-
-        // TODO: generate some kind of "obstacle probability" instead of black/white pixels
-        /*
-        previousReadings.add(scanResult);
-
-        this.map.setCar(this.map.getLastScanCar());
-        for (ScanResult.SingleScan scan : scanResult.scans) this.map.removeCollidingObstacles(scan); */
+        this.map.processScanResult(scanResult);
 
         redrawMap();
+
+        // ### THIS IS JUST OLD ####
+        /*
+        for (ScanResult.SingleScan scan : scanResult.scans) this.map.processMeasurement(scan, null, scanResult.car);
+
+        previousReadings.add(scanResult);
+        this.map.setCar(this.map.getLastScanCar());
+
+        for (ScanResult prevScan : previousReadings) {
+            for (ScanResult.SingleScan scan : prevScan.scans)
+                this.map.removeCollidingObstacles(scan, null, prevScan.car);
+        }
+
+        // for (ScanResult.SingleScan scan : scanResult.scans) this.map.removeCollidingObstacles(scan, scanResult.car); */
     }
 
     public void updateCarPosition() {
@@ -298,7 +302,7 @@ public class ActivitySecond extends AppCompatActivity {
         handler.post(new Runnable() {
             @Override
             public void run() {
-                targetView.setText("DSTN: <" +target.x +", " +target.y +">");
+                targetView.setText("DESTINATION: <" +target.x +", " +target.y +">");
             }
         });
     }
