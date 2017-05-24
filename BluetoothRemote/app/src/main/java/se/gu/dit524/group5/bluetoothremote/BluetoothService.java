@@ -15,25 +15,36 @@ import java.util.Set;
 
 /**
  * As published on https://developer.android.com/guide/topics/connectivity/bluetooth.html,
- * modified by julian.bock.
+ * modified and implemented by julian.bock.
  */
 
 public class BluetoothService {
-
-    public Handler handler;
-    public BluetoothAdapter bluetoothAdapter;
-    public BluetoothDevice bluetoothDevice;
+    private Handler handler;
+    private BluetoothAdapter bluetoothAdapter;
+    private BluetoothDevice bluetoothDevice;
 
     private ConnectThread connectThread;
     private ConnectedThread connectedThread;
-    private PriorityQueue<Instruction> commandQueue;
+    private CommandQueueThread commandQueueThread;
 
+    private PriorityQueue<Instruction> commandQueue;
     private byte[] scanBuffer;
-    protected Object mainActivity;
-    protected Method scanCallback;
-    protected Method automaticSteeringCallback;
-    protected boolean awaitingSteeringCallback;
-    private boolean awaitingScanResults;
+
+    public Object mainActivity;
+    public Method scanCallback;
+    public Method automaticSteeringCallback;
+
+    private int state;
+
+    public static final int IDLE                       = 0;
+    public static final int AWAITING_STEERING_CALLBACK = 1;
+    public static final int SCANNING                   = 2;
+
+    private static final int AWAITING_SCAN_RESULTS     = 4;
+
+    // public boolean awaitingSteeringCallback;
+    // public int awaitingSteeringCallbacks;
+    // public boolean awaitingScanResults;
 
     public BluetoothService() {
         this.commandQueue = new PriorityQueue<>();
@@ -53,14 +64,48 @@ public class BluetoothService {
         }
     }
 
+    public int state() {
+        return this.state;
+    }
+
+    public boolean busy() {
+        return this.state != IDLE && connectedThread.sending;
+    }
+
     public void send(Instruction ins) {
         this.send(ins, false);
     }
 
-
     public void send(Instruction ins, boolean queue) {
         if (queue) commandQueue.add(ins);
-        if (this.connectedThread != null) this.connectedThread.write(ins.getCmd());
+        else if (this.connectedThread != null) this.connectedThread.write(ins.getCmd());
+    }
+
+    public class CommandQueueThread extends Thread {
+        private boolean interrupted = false;
+        private ConnectedThread connection;
+
+        public CommandQueueThread(ConnectedThread connection) {
+            this.connection = connection;
+        }
+
+        public void run() {
+            while (!interrupted) {
+                if (!busy() && commandQueue.size() > 0) {
+                    state = commandQueue.peek().getBtState();
+                    connection.write(commandQueue.peek().getCmd());
+                }
+                try {
+                    Thread.sleep(50);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        public void cancel() {
+            this.interrupted = true;
+        }
     }
 
     public class ConnectThread extends Thread {
@@ -73,7 +118,7 @@ public class BluetoothService {
 
             try {
                 tmp = (BluetoothSocket) device.getClass().getMethod(
-                        "createRfcommSocket", new Class[] {int.class}).invoke(device,1);
+                        "createRfcommSocket", new Class[] {int.class}).invoke(device, 1);
             }
             catch (Exception e) {
                 System.out.println("Socket's create() method failed:");
@@ -91,6 +136,8 @@ public class BluetoothService {
                     mmSocket.connect();
                     connectedThread = new ConnectedThread(this.mmSocket);
                     connectedThread.start();
+                    commandQueueThread = new CommandQueueThread(connectedThread);
+                    commandQueueThread.start();
                     return;
 
                 } catch (Exception connectException) {
@@ -144,34 +191,31 @@ public class BluetoothService {
         }
 
         public void run() {
-            mmBuffer = new byte[4096];
+            mmBuffer = new byte[512];
             int numBytes;
             while (this.mmSocket.isConnected()) {
                 try {
                     numBytes = mmInStream.read(mmBuffer);
                     if (sending) {
-                        if (lastMsg[lastMsg.length -1] != mmBuffer[numBytes -1]) write(lastMsg);
+                        if (lastMsg[lastMsg.length -1] != mmBuffer[numBytes -1]) {
+                            write(lastMsg);
+                        }
                         else {
-                            if (commandQueue.size() > 0
-                                    && Arrays.equals(lastMsg, commandQueue.peek().getCmd())) {
+                            if (commandQueue.size() > 0 && Arrays.equals(lastMsg, commandQueue.peek().getCmd())) {
                                 commandQueue.poll();
                             }
+
                             lastMsg = null;
                             sending = false;
-
-                            if (commandQueue.size() > 0
-                                    && commandQueue.peek().getPriority() < System.currentTimeMillis()) {
-                                this.write(commandQueue.peek().getCmd());
-                            }
                         }
                     }
                     else {
-                        if (!awaitingScanResults && mmBuffer[0] == (byte)0xFF) {
-                            awaitingScanResults = true;
+                        if (state == SCANNING && mmBuffer[0] == (byte)0xFF) {
+                            state = AWAITING_SCAN_RESULTS;
                             scanBuffer = new byte[numBytes];
                             System.arraycopy(mmBuffer, 0, scanBuffer, 0, numBytes);
                         }
-                        else if (awaitingScanResults) {
+                        else if (state == AWAITING_SCAN_RESULTS) {
                             byte[] tmp = new byte[scanBuffer.length +numBytes];
                             System.arraycopy(scanBuffer, 0, tmp, 0, scanBuffer.length);
                             System.arraycopy(mmBuffer, 0, tmp, scanBuffer.length, numBytes);
@@ -179,18 +223,28 @@ public class BluetoothService {
                             if ((scanBuffer[1] << 8) + scanBuffer[2] +4 == (byte)scanBuffer.length) {
                                 ScanResult scanResult = new ScanResult(scanBuffer, 3, scanBuffer.length -4);
 
-                                awaitingScanResults = false;
+                                state = IDLE;
                                 try { scanCallback.invoke(mainActivity, scanResult); }
                                 catch (Exception e) { e.printStackTrace(); }
                             }
                         }
-                        if (awaitingSteeringCallback && mmBuffer[0] == (byte)0x2F) {
-                            awaitingSteeringCallback = false;
-                            try { automaticSteeringCallback.invoke(mainActivity); }
-                            catch (Exception e) { e.printStackTrace(); }
+
+                        if (state == AWAITING_STEERING_CALLBACK && (
+                                mmBuffer[0] == (byte)0x2F ||
+                                mmBuffer[0] == (byte)0x3F ||
+                                mmBuffer[0] == (byte)0x4F )) {
+                                try {
+                                    state = IDLE;
+                                    automaticSteeringCallback.invoke(mainActivity);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+
+                            }
                         }
                     }
-                } catch (IOException e) {
+
+                catch (IOException e) {
                     System.out.println("An error occurred when receiving data:");
                     e.printStackTrace();
                     try { mmSocket.close(); } catch (IOException ex) { ex.printStackTrace(); }
@@ -200,6 +254,7 @@ public class BluetoothService {
 
         public void write(byte[] bytes) {
             if (this.sending) return;
+
             lastMsg = bytes;
             this.sending = true;
             try { mmOutStream.write(bytes); }

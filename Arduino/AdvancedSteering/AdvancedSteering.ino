@@ -149,6 +149,23 @@ void loop() {
           car.go((int) -hyp);
         }
         Serial3.write(0x2F);
+        Serial3.write(crc);
+        state = STATE_DEFAULT;
+        break;
+      case 3:    /* SEMI-AUTOMATIC ROTATE */
+        state = STATE_AUTOMATIC_STEERING;
+        if ((data[1] & B10000000) == 0) car.rotate((int)(data[1] & B01111111));
+        else if ((data[1] & B10000000) >= 1) car.rotate(-(int)(data[1] & B01111111));
+        Serial3.write(0x3F);
+        Serial3.write(crc);
+        state = STATE_DEFAULT;
+        break;
+      case 4:    /* SEMI-AUTOMATIC MOVE */
+        state = STATE_AUTOMATIC_STEERING;
+        if ((data[1] & B10000000) == 0) car.go((int)(data[1] & B01111111));
+        else if ((data[1] & B10000000) >= 1) car.go(-(int)(data[1] & B01111111));
+        Serial3.write(0x4F);
+        Serial3.write(crc);
         state = STATE_DEFAULT;
         break;
       case 15:   /* MAPPING/SCANNING INSTRUCTION */

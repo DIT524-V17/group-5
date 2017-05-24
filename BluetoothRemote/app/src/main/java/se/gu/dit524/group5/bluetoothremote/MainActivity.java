@@ -13,7 +13,7 @@ public class MainActivity extends AppCompatActivity  {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
     }
-    //This starts a new activity when clicking the start button in the activity_main.
+
     public void sendMessage(View view){
         Intent intent = new Intent(this, ActivitySecond.class);
         this.startActivity(intent);
