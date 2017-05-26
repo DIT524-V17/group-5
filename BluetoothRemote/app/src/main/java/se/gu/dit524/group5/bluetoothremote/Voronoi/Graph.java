@@ -4,7 +4,7 @@ import java.util.ArrayList;
 public class Graph {
     protected ArrayList<Node> nodes;
     protected ArrayList<Edge> edges;
-    private   LinearFunction linFunc;
+    protected LinearFunction linFunc;
 
     public Graph(LinearFunction linearFunction) {
         nodes = new ArrayList<>();
@@ -21,6 +21,20 @@ public class Graph {
             return null;
         } else {
             Edge e = new Edge(v1, v2, linFunc);
+            this.edges.add(e);
+            return e;
+        }
+    }
+
+    public Edge addEdge(Edge e){
+        if(e.v1.equals(v2) || ((e.v1.x == 0.0 && e.v1.y == 0) && (e.v2.x == 0.0 && e.v2.y == 0))) return null;
+        Edge temp = findEdge(new Edge(e.v1, e.v2, linFunc));
+        if (temp != null) {
+            // Don't allow multiple edges, update cost.
+            // System.out.println("Edge " + v1.id + "," + v2.id + " already exists.");
+            return null;
+        } else {
+            Edge e = new Edge(e.v1, e.v2, linFunc);
             this.edges.add(e);
             return e;
         }

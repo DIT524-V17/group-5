@@ -27,6 +27,7 @@ public class Voronoi {
     private LinearFunction linFun;
     private int nodeCounter;
     public  Graph voronoiGraph;
+    private Bitmap inputMap;
 
     public Voronoi(int mapHeight, int mapWidth){
         this.MAP_HEIGHT = mapHeight;
@@ -39,6 +40,21 @@ public class Voronoi {
         this.linFun = new LinearFunction(MAP_WIDTH, MAP_HEIGHT);
         this.voronoiGraph = new Graph(linFun);
         this.nodeCounter = 0;
+    }
+
+    public Voronoi(Bitmap map){
+        this.inputMap = map;
+        this.MAP_HEIGHT = map.getHeight();
+        this.MAP_WIDTH = map.getWidth();
+        this.sites = new ArrayList<>();
+        this.polygons = new ArrayList<>();
+        this.builder = new VoronoiDiagramBuilder();
+        this.envelope = new Envelope(new Coordinate(MAP_MIN,MAP_MIN), new Coordinate(MAP_WIDTH,MAP_HEIGHT));
+        this.voronoiMap = Bitmap.createBitmap(MAP_WIDTH, MAP_HEIGHT, Bitmap.Config.ARGB_4444);
+        this.linFun = new LinearFunction(MAP_WIDTH, MAP_HEIGHT);
+        this.voronoiGraph = new Graph(linFun);
+        this.nodeCounter = 0;
+
     }
 
     private Coordinate[] getPoylgonVertices(Polygon poly){
@@ -59,10 +75,6 @@ public class Voronoi {
             }
         }
         this.sites.add(site);
-    }
-
-    public ArrayList<Coordinate> getSites() {
-        return this.sites;
     }
 
     public Bitmap createVoronoi(){
@@ -147,7 +159,22 @@ public class Voronoi {
                         ver2 = this.voronoiGraph.findNode(ver2);
                     }
 
-                    Edge e = this.voronoiGraph.addEdge(ver, ver2);
+                    boolean isColliding = false;
+                    double m = this.linFun.getSlope(ver,ver2);
+                    double b = this.linFun.getB(ver,m);
+                    Edge e = new Edge(ver,ver2,this.linFun);
+
+                    for(double i =  ver.x; i <= ver2.x; i++){
+                        int x = (int) i;
+                        int y = (int) (m * x) + b;
+                        if((inputMap.getPixel(x,y) &0xff) != 0xff ){
+                            isColliding = true;
+                            break;
+                        }
+                    }
+
+                    if(!isColliding){this.voronoiGraph.addEdge(e);}
+
                     if (e != null) {
                         ver.addNeighbour(ver2, e);
                         ver2.addNeighbour(ver, e);
@@ -168,5 +195,9 @@ public class Voronoi {
 
     private void addPolygon(Polygon poly){
         this.polygons.add(poly);
+    }
+
+    public ArrayList<Coordinate> getSites() {
+        return this.sites;
     }
 }
