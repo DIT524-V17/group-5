@@ -8,8 +8,7 @@ public class Node {
     int id;
     private HashMap<Node, Edge> neighbours;
 
-    public Node(double x, double y, int id)
-    {
+    public Node(double x, double y, int id) {
         this.x = x;
         this.y = y;
         this.id = id;
@@ -30,9 +29,9 @@ public class Node {
 
     @Override
     public boolean equals(Object obj) {
-        if(obj instanceof Node){
+        if(obj instanceof Node) {
             Node v = (Node) obj;
-            return Math.abs(v.x - this.x) < 0.5 && Math.abs(v.y - this.y) < 0.5;
+            return this.id() == v.id() || Math.abs(v.x - this.x) <= 0.5f && Math.abs(v.y - this.y) <= 0.5f;
         }else{
             return false;
         }

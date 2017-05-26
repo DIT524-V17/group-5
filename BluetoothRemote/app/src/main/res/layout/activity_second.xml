@@ -131,7 +131,7 @@
         android:id="@+id/listOfMaps"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="LIST OF MAPS"
+        android:text="LOAD MAP"
         android:layout_alignParentTop="true"
         android:layout_alignEnd="@+id/mapView"
         android:visibility="invisible"

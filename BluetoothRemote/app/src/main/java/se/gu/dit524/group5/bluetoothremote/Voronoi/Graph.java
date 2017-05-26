@@ -27,16 +27,16 @@ public class Graph {
     }
 
     public Edge addEdge(Edge e){
-        if(e.v1.equals(v2) || ((e.v1.x == 0.0 && e.v1.y == 0) && (e.v2.x == 0.0 && e.v2.y == 0))) return null;
+        if(e.v1.equals(e.v2) || ((e.v1.x == 0.0 && e.v1.y == 0) && (e.v2.x == 0.0 && e.v2.y == 0))) return null;
         Edge temp = findEdge(new Edge(e.v1, e.v2, linFunc));
         if (temp != null) {
             // Don't allow multiple edges, update cost.
             // System.out.println("Edge " + v1.id + "," + v2.id + " already exists.");
             return null;
         } else {
-            Edge e = new Edge(e.v1, e.v2, linFunc);
-            this.edges.add(e);
-            return e;
+            Edge edge = new Edge(e.v1, e.v2, linFunc);
+            this.edges.add(edge);
+            return edge;
         }
     }
 

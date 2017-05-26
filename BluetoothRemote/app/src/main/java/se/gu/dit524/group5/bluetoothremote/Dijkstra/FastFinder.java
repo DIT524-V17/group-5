@@ -19,14 +19,16 @@ public class FastFinder {
         // First define the starting point for this route, then (following Dijkstra) iterate
         // through all connected nodes within the network until the destination is reached:
         fastest[from.id()] = new PriorityConnection(from, new Edge(from, from, 0), 0);
+        if (from.getNeighbours().size() == 0) return null;
 
-        while (!from.equals(to) || !availableConnections.isEmpty()) {
+        while (!from.equals(to)) {
             // Add all new edges (going out from the current node and leading to a unvisited endpoint) to the heap:
             for (Node node : from.getNeighbours().keySet())
                 if (fastest[node.id()] == null) {
                     Edge edge = from.getNeighbours().get(node);
                     availableConnections.add(new PriorityConnection(from, edge, fastest[from.id()].weight()));
                 }
+                if (availableConnections.isEmpty()) return null;
 
             // Get the next 'shortest' connection off the heap and store any information about the path taken within
             // the 'fastest' array - which will automatically mark the new node as visited, since fastest[conn.to.id]

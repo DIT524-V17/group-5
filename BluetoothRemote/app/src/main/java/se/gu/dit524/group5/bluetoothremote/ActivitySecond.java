@@ -3,6 +3,7 @@ package se.gu.dit524.group5.bluetoothremote;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.PointF;
 import android.os.Bundle;
 import android.os.Handler;
@@ -11,6 +12,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.ToggleButton;
@@ -28,8 +30,9 @@ import static se.gu.dit524.group5.bluetoothremote.Mapping.Constants.*;
 
 public class ActivitySecond extends AppCompatActivity {
 
-    private Button connect, scan, reset;
+    private Button connect, scan, reset, vCancel, vDone, vAuto;
     private Map map;
+    private RelativeLayout activityLayout;
     private Voronoi voronoi;
     private ImageView mapView;
     private BluetoothService btService;
@@ -42,6 +45,7 @@ public class ActivitySecond extends AppCompatActivity {
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_second);
+        activityLayout = (RelativeLayout) this.findViewById(R.id.ActivitySecond);
 
         map = new Map();
         posView = (TextView) this.findViewById(R.id.carPosText);
@@ -55,16 +59,16 @@ public class ActivitySecond extends AppCompatActivity {
                 map = new Map(btService);
                 redrawMap();
 
-                /* VORO-ROUTE-NOI-THING-STUFF...
-                 *
+                /* VORO-ROUTE-NOI-THING-STUFF... */
+                /*
                 System.out.println("GENERATING...");
-                Voronoi voronoi = new Voronoi(SENSOR_MAX_DISTANCE *20, SENSOR_MAX_DISTANCE *20);
+                Voronoi voronoi = new Voronoi(map.generateConcreteMap(obstacleThreshold.getProgress()));
                 Random rnd = new Random();
-                for (int i = 0; i < 10000; i++)
+                for (int i = 0; i < 100; i++)
                     voronoi.addSite(
                             new Coordinate(
-                            rnd.nextInt(SENSOR_MAX_DISTANCE *20),
-                            rnd.nextInt(SENSOR_MAX_DISTANCE *20)));
+                            rnd.nextInt(map.getMap().getWidth()),
+                            rnd.nextInt(map.getMap().getHeight())));
 
                 Bitmap voronoiBitmap = voronoi.createVoronoi();
                 voronoi.extractVoronoiToGraph();
@@ -73,19 +77,29 @@ public class ActivitySecond extends AppCompatActivity {
                 mapView.setImageBitmap(voronoiBitmap);
 
                 System.out.println("SEARCHING...");
-                int src = rnd.nextInt(voronoi.voronoiGraph.getNodes().size());
-                int dst = rnd.nextInt(voronoi.voronoiGraph.getNodes().size());
+                int src = rnd.nextInt(voronoi.voronoiGraph.getNodes().size() -1);
+                int dst = rnd.nextInt(voronoi.voronoiGraph.getNodes().size() -1);
                 Node[] route =
                         FastFinder.findRoute(
                             voronoi.voronoiGraph,
                             voronoi.voronoiGraph.getNodes().get(src),
                             voronoi.voronoiGraph.getNodes().get(dst));
 
-                for (int i = 0; i < route.length; i++) {
-                    if (i == 0) System.out.println("FROM " +src +" TO " +route[0].id());
-                    else System.out.println("FROM " +route[i -1].id() +" TO " +route[i].id());
-                    if (i == route.length -1 && route[i].id() == dst)
-                        System.out.println("YOU'VE REACHED YOUR DESTINATION.");
+                if (route == null) {
+                    System.out.println("SORRY, COUDLN'T FIND A PATH TO THAT PLACE.");
+                    if (voronoi.voronoiGraph.getNodes().get(src).getNeighbours().size() == 0)
+                        System.out.println("SOURCE NOT CONNECTED TO ANY OTHER NODE.");
+                    if (voronoi.voronoiGraph.getNodes().get(dst).getNeighbours().size() == 0)
+                        System.out.println("DESTINATION NOT CONNECTED TO ANY OTHER NODE.");
+                }
+                else {
+                    for (int i = 0; i < route.length; i++) {
+                        if (i == 0) System.out.println("FROM " + src + " TO " + route[0].id());
+                        else
+                            System.out.println("FROM " + route[i - 1].id() + " TO " + route[i].id());
+                        if (i == route.length - 1 && route[i].id() == dst)
+                            System.out.println("YOU'VE REACHED YOUR DESTINATION.");
+                    }
                 } */
             }
         });
@@ -106,9 +120,46 @@ public class ActivitySecond extends AppCompatActivity {
                     else obstacleThreshold.setVisibility(View.INVISIBLE);
                     redrawMap();
                 }
-                else if (voronoiToggle.isChecked()) {
-                    if (voronoi == null) {
-                        voronoi = new Voronoi(map.getMap().getWidth(), map.getMap().getHeight());
+                else if (v.equals(voronoiToggle)) {
+                    // TODO: do something!
+                    if (voronoi == null) voronoi = new Voronoi(map.generateConcreteMap(obstacleThreshold.getProgress()));
+                    if (vCancel == null) {
+                        vCancel = new Button(getApplicationContext());
+                        vCancel.setLayoutParams(connect.getLayoutParams());
+                        vCancel.setText("Cancel");
+                        vCancel.setBackground(connect.getBackground());
+                        vCancel.setTextColor(Color.argb(0xff, 0x12, 0x34, 0x56));
+                        vCancel.setVisibility(View.INVISIBLE);
+                        activityLayout.addView(vCancel);
+                    }
+                    if (vDone == null) {
+                        vDone = new Button(getApplicationContext());
+                        vDone.setLayoutParams(reset.getLayoutParams());
+                        vDone.setText("Done");
+                        vDone.setBackground(reset.getBackground());
+                        vDone.setTextColor(Color.argb(0xff, 0x12, 0x34, 0x56));
+                        vDone.setVisibility(View.INVISIBLE);
+                        activityLayout.addView(vDone);
+                    }
+                    if (vAuto == null) {
+                        vAuto = new Button(getApplicationContext());
+                        vAuto.setLayoutParams(movement.getLayoutParams());
+                        vAuto.setText("Auto");
+                        vAuto.setBackground(movement.getBackground());
+                        vAuto.setTextColor(Color.argb(0xff, 0x12, 0x34, 0x56));
+                        vAuto.setVisibility(View.INVISIBLE);
+                        activityLayout.addView(vAuto);
+                    }
+
+                    if (voronoiToggle.isChecked()) {
+                        vAuto.setVisibility(View.VISIBLE);
+                        vDone.setVisibility(View.VISIBLE);
+                        vCancel.setVisibility(View.VISIBLE);
+                    }
+                    else {
+                        vAuto.setVisibility(View.INVISIBLE);
+                        vDone.setVisibility(View.INVISIBLE);
+                        vCancel.setVisibility(View.INVISIBLE);
                     }
                 }
                 else redrawMap();
@@ -122,14 +173,10 @@ public class ActivitySecond extends AppCompatActivity {
         obstacleThreshold = (SeekBar) this.findViewById(R.id.obsThreshold);
         obstacleThreshold.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-
-            }
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) { }
 
             @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-
-            }
+            public void onStartTrackingTouch(SeekBar seekBar) { }
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
@@ -243,17 +290,17 @@ public class ActivitySecond extends AppCompatActivity {
                     btService.send(new Instruction(new byte[]{ (byte)0xF1, SERVO_TURN_DEGREES }, 1, BluetoothService.SCANNING), true);
 
                 // Is MARBLE out of order? Use the snippet below.
-                /*
+
                 byte[] fakeResults = new byte[180 /SERVO_TURN_DEGREES *3];
                 Random rnd = new Random();
                 int pos = 0;
                 while (pos < fakeResults.length /3) {
                     fakeResults[pos *3 +0] = (byte)(pos *SERVO_TURN_DEGREES);
-                    fakeResults[pos *3 +1] = (byte)(rnd.nextInt(SENSOR_MAX_DISTANCE));
-                    fakeResults[pos *3 +2] = (byte)(rnd.nextInt(SENSOR_MAX_DISTANCE));
+                    fakeResults[pos *3 +1] = (byte)(/*rnd.nextInt(SENSOR_MAX_DISTANCE)*/ SENSOR_MAX_DISTANCE);
+                    fakeResults[pos *3 +2] = (byte)(/*rnd.nextInt(SENSOR_MAX_DISTANCE)*/ SENSOR_MAX_DISTANCE);
                     pos++;
                 }
-                updateMap(new ScanResult(fakeResults, 0, fakeResults.length)); */
+                updateMap(new ScanResult(fakeResults, 0, fakeResults.length));
             }
         });
 
@@ -355,12 +402,21 @@ public class ActivitySecond extends AppCompatActivity {
         });
     }
 
-    public void sendMessageToMaps(View view){
+    public void sendMessageToMaps(View view) {
         Intent intent = new Intent(this, ActivityThird.class);
-        this.startActivity(intent);
+        this.startActivityForResult(intent, 0);
     }
 
     public void saveMap(View view) {
         System.out.println("THIS FUNCTION IS YET TO BE IMPLEMENTED.");
+    }
+
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        Intent intent = getIntent();
+        String filePath = data.getExtras().getString("filePath");
+
+        // TODO: load the image (and reinitialize whatever has to be initialized)
     }
 }

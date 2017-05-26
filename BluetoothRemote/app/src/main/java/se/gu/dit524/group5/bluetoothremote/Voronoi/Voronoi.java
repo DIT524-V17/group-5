@@ -29,19 +29,6 @@ public class Voronoi {
     public  Graph voronoiGraph;
     private Bitmap inputMap;
 
-    public Voronoi(int mapHeight, int mapWidth){
-        this.MAP_HEIGHT = mapHeight;
-        this.MAP_WIDTH = mapWidth;
-        this.sites = new ArrayList<>();
-        this.polygons = new ArrayList<>();
-        this.builder = new VoronoiDiagramBuilder();
-        this.envelope = new Envelope(new Coordinate(MAP_MIN,MAP_MIN), new Coordinate(MAP_WIDTH,MAP_HEIGHT));
-        this.voronoiMap = Bitmap.createBitmap(MAP_WIDTH, MAP_HEIGHT, Bitmap.Config.ARGB_4444);
-        this.linFun = new LinearFunction(MAP_WIDTH, MAP_HEIGHT);
-        this.voronoiGraph = new Graph(linFun);
-        this.nodeCounter = 0;
-    }
-
     public Voronoi(Bitmap map){
         this.inputMap = map;
         this.MAP_HEIGHT = map.getHeight();
@@ -131,9 +118,8 @@ public class Voronoi {
         for (Edge e : this.voronoiGraph.edges) c.drawLine((float) e.v1.x, (float) e.v1.y, (float) e.v2.x, (float) e.v2.y, paint);
     }
 
-    public void extractVoronoiToGraph(){
-
-        for(Polygon poly : this.polygons) {
+    public void extractVoronoiToGraph() {
+        for (Polygon poly : this.polygons) {
             Coordinate[] cs = getPoylgonVertices(poly);
             for (int i = 0; i < cs.length; i++) {
                 int j = i + 1;
@@ -159,25 +145,29 @@ public class Voronoi {
                         ver2 = this.voronoiGraph.findNode(ver2);
                     }
 
-                    boolean isColliding = false;
-                    double m = this.linFun.getSlope(ver,ver2);
-                    double b = this.linFun.getB(ver,m);
-                    Edge e = new Edge(ver,ver2,this.linFun);
-
-                    for(double i =  ver.x; i <= ver2.x; i++){
-                        int x = (int) i;
-                        int y = (int) (m * x) + b;
-                        if((inputMap.getPixel(x,y) &0xff) != 0xff ){
-                            isColliding = true;
-                            break;
-                        }
-                    }
-
-                    if(!isColliding){this.voronoiGraph.addEdge(e);}
-
+                    Edge e = this.voronoiGraph.addEdge(ver, ver2);
                     if (e != null) {
-                        ver.addNeighbour(ver2, e);
-                        ver2.addNeighbour(ver, e);
+                        boolean isColliding = false;
+                        double m = this.linFun.getSlope(ver, ver2);
+                        double b = this.linFun.getB(ver, m);
+                        double min = Math.min(ver.x, ver2.x);
+                        double max = Math.max(ver.x, ver2.x);
+
+                        for (double k = min; k <= max; k++) {
+                            int x = (int) k;
+                            int y = (int) ((m * x) + b);
+                            if (x < inputMap.getWidth() && x >= 0 &&
+                                y < inputMap.getHeight() && y >= 0 &&
+                                (inputMap.getPixel(x, y) &0xff) != 0xff) {
+                                isColliding = true; break;
+                            }
+                        }
+                        if (isColliding) this.voronoiGraph.edges.remove(e);
+                        else {
+                            // System.out.println("This is stupid.");
+                            ver.addNeighbour(ver2, e);
+                            ver2.addNeighbour(ver, e);
+                        }
                     }
                 }
             }
