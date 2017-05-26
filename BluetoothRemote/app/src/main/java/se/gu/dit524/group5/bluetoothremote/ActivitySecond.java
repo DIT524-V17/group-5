@@ -418,59 +418,48 @@ public class ActivitySecond extends AppCompatActivity {
     }
 
     //added by Ameera 26/05/2017
-    private String saveMap(Bitmap bitmapImage) {
-            ContextWrapper cw = new ContextWrapper(getApplicationContext());
-            File directory = cw.getDir("mapDirectory", Context.MODE_PRIVATE);
+    private String saveImage(Bitmap bitmapImage) {
+        // getting a pointer to the map directory
+        ContextWrapper cw = new ContextWrapper(getApplicationContext());
+        File directory = cw.getDir("maps", Context.MODE_PRIVATE);
 
-            //defining method for formatted date
-            Calendar c = Calendar.getInstance();
-            System.out.println("Current time => " + c.getTime());
+        // defining a suitable file name
+        Calendar c = Calendar.getInstance();
+        SimpleDateFormat df = new SimpleDateFormat("dd-MMM-yyyy_H-m-s-S");
+        String formattedDate = df.format(c.getTime());
 
-            SimpleDateFormat df = new SimpleDateFormat("dd-MMM-yyyy_H-m-s-S");
-            String formattedDate = df.format(c.getTime());
+        // saving the image
+        File path = new File(directory, "map_" + formattedDate + ".png");
+        FileOutputStream fos;
+        try {
+            fos = new FileOutputStream(path);
+            bitmapImage.compress(Bitmap.CompressFormat.PNG, 100, fos);
+            fos.close();
 
-            // Create imageDir
-            File mypath = new File(directory, "map_" + formattedDate + ".jpg");
-
-            FileOutputStream fos = null;
-            try {
-
-                fos = new FileOutputStream(mypath);
-
-                // Use the compress method on the BitMap object to write image to
-                // the OutputStream
-                bitmapImage.compress(Bitmap.CompressFormat.PNG, 100, fos);
-                fos.close();
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            return directory.getAbsolutePath();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return directory.getAbsolutePath();
     }
 
 
-    private void loadImage(String path) {
+    private void loadImage(String fileName) {
+        try {
+            // getting a pointer to the map directory
+            ContextWrapper cw = new ContextWrapper(getApplicationContext());
+            File directory = cw.getDir("maps", Context.MODE_PRIVATE);
+            File f = new File(directory, fileName);
 
-            try {
-                //defining method for formatted date
-                Calendar c = Calendar.getInstance();
-                System.out.println("Current time => " + c.getTime());
+            // loading the image
+            Bitmap b = BitmapFactory.decodeStream(new FileInputStream(f));
 
-                SimpleDateFormat df = new SimpleDateFormat("dd-MMM-yyyy_H-m-s-S");
-                String formattedDate = df.format(c.getTime());
+            // TODO: This is where the image should be processed
+            // ImageView img = (ImageView) findViewById(R.id.viewImage);
+            // img.setImageBitmap(b);
 
-
-                ContextWrapper cw = new ContextWrapper(getApplicationContext());
-                File path1 = cw.getDir("mapDirectory", Context.MODE_PRIVATE);
-                File f = new File(path1, "map_" + formattedDate + ".jpg");
-                Bitmap b = BitmapFactory.decodeStream(new FileInputStream(f));
-                // this is where the image should be processed
-                ImageView img = (ImageView) findViewById(R.id.viewImage);
-                img.setImageBitmap(b);
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            }
-
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
