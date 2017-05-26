@@ -1,13 +1,13 @@
-package com.example.mghan.implementationvoronidijkstra;
+package se.gu.dit524.group5.bluetoothremote.Voronoi;
 import com.vividsolutions.jts.geom.Coordinate;
 import java.util.ArrayList;
 
 public class LinearFunction {
-    // General formula y = mx + b
-    int MAPMAX = 200;
-    int MAPMIN = 0;
-    public LinearFunction(){
+    private final int MAPMIN = 0, MAPWIDTH, MAPHEIGHT;
 
+    public LinearFunction(int mapWidth, int mapHeight){
+        this.MAPWIDTH = mapWidth;
+        this.MAPHEIGHT = mapHeight;
     }
 
     /**
@@ -21,8 +21,6 @@ public class LinearFunction {
         double b = getB(v1, m);
 
         return "y = " + m + "x " + b;
-
-
     }
 
     public String getLinearFunction(Coordinate c1, Coordinate c2){
@@ -30,8 +28,6 @@ public class LinearFunction {
         double b = getB(c1, m);
 
         return "y = " + m + "x " + b;
-
-
     }
 
     /**
@@ -57,9 +53,9 @@ public class LinearFunction {
 
         //If the x coordinate is outside of the map from the right side find the y value such that x = 200;
         // y = 200m + b
-        if(v1x > MAPMAX){
-            v1x = MAPMAX;
-            v1y = (MAPMAX * m) + b;
+        if(v1x > MAPWIDTH){
+            v1x = MAPWIDTH;
+            v1y = (MAPWIDTH * m) + b;
         } else{}
         //If the y coordinate is outside of the map from the top of the map find the x value such that y = 0;
         //x = -b/m
@@ -70,9 +66,9 @@ public class LinearFunction {
 
         //If the y coordinate is outside of the map from the bottom of the map find the x value such that y = 200;
         //x = (200 - b) / m
-        if(v1y > MAPMAX){
-            v1x = (MAPMAX - b)/m;
-            v1y = MAPMAX;
+        if(v1y > MAPHEIGHT){
+            v1x = (MAPHEIGHT - b)/m;
+            v1y = MAPHEIGHT;
 
         } else{}
 
@@ -86,9 +82,9 @@ public class LinearFunction {
 
         //If the x coordinate is outside of the map from the right side find the y value such that x = 200;
         // y = 200m + b
-        if(v2x > MAPMAX){
-            v2x = MAPMAX;
-            v2y = (MAPMAX * m) + b;
+        if(v2x > MAPWIDTH){
+            v2x = MAPWIDTH;
+            v2y = (MAPWIDTH * m) + b;
         } else{}
         //If the y coordinate is outside of the map from the top of the map find the x value such that y = 0;
         //x = -b/m
@@ -99,14 +95,14 @@ public class LinearFunction {
 
         //If the y coordinate is outside of the map from the bottom of the map find the x value such that y = 200;
         //x = (200 - b) / m
-        if(v2y > MAPMAX){
-            v2x = (MAPMAX - b)/m;
-            v2y = MAPMAX;
+        if(v2y > MAPHEIGHT){
+            v2x = (MAPHEIGHT - b)/m;
+            v2y = MAPHEIGHT;
 
         } else{}
 
-        mapCooridnates[0] = new Node(v1x,v1y, v1.identifier);
-        mapCooridnates[1] = new Node(v2x,v2y,v2.identifier);
+        mapCooridnates[0] = new Node(v1x,v1y, v1.id);
+        mapCooridnates[1] = new Node(v2x,v2y, v2.id);
 
         return mapCooridnates;
     }
@@ -122,7 +118,7 @@ public class LinearFunction {
 
 
         if(m == 0){
-            if(b > MAPMAX || b < MAPMIN){
+            if(b > MAPHEIGHT || b < MAPMIN){
                 return null;
             }
             v1y = b;
@@ -130,29 +126,29 @@ public class LinearFunction {
             if(v1x < MAPMIN){
                 v1x = MAPMIN;
             } else {}
-            if(v1x > MAPMAX){
-                v1x = MAPMAX;
+            if(v1x > MAPWIDTH){
+                v1x = MAPWIDTH;
             } else {}
             if(v2x < MAPMIN){
                 v2x = MAPMIN;
             } else {}
-            if(v2x > MAPMAX){
-                v2x = MAPMAX;
+            if(v2x > MAPWIDTH){
+                v2x = MAPWIDTH;
             } else {}
         } else if(Double.isInfinite(m) || Double.isNaN(m)) {
-            if(v1x > MAPMAX || v1x < MAPMIN){
+            if(v1x > MAPWIDTH || v1x < MAPMIN){
                 return null;
             } else{
-                if(v1y > MAPMAX){
-                    v1y = MAPMAX;
+                if(v1y > MAPHEIGHT){
+                    v1y = MAPHEIGHT;
                 } else{}
 
                 if(v1y < MAPMIN){
                     v1y = MAPMIN;
                 } else{}
 
-                if(v2y > MAPMAX){
-                    v2y = MAPMAX;
+                if(v2y > MAPHEIGHT){
+                    v2y = MAPHEIGHT;
                 } else{}
 
                 if(v2y < MAPMIN){
@@ -174,9 +170,9 @@ public class LinearFunction {
 
                 //If the x coordinate is outside of the map from the right side find the y value such that x = 200;
                 // y = 200m + b
-                else if (v1x > MAPMAX) {
-                    v1x = MAPMAX;
-                    v1y = (MAPMAX * m) + b;
+                else if (v1x > MAPWIDTH) {
+                    v1x = MAPWIDTH;
+                    v1y = (MAPWIDTH * m) + b;
                 }
 
                 //If the y coordinate is outside of the map from the top of the map find the x value such that y = 0;
@@ -188,9 +184,9 @@ public class LinearFunction {
 
                 //If the y coordinate is outside of the map from the bottom of the map find the x value such that y = 200;
                 //x = (200 - b) / m
-                else if (v1y > MAPMAX) {
-                    v1x = (MAPMAX - b) / m;
-                    v1y = MAPMAX;
+                else if (v1y > MAPHEIGHT) {
+                    v1x = (MAPHEIGHT - b) / m;
+                    v1y = MAPHEIGHT;
 
                 }
 
@@ -204,9 +200,9 @@ public class LinearFunction {
 
                 //If the x coordinate is outside of the map from the right side find the y value such that x = 200;
                 // y = 200m + b
-                else if (v2x > MAPMAX) {
-                    v2x = MAPMAX;
-                    v2y = (MAPMAX * m) + b;
+                else if (v2x > MAPWIDTH) {
+                    v2x = MAPWIDTH;
+                    v2y = (MAPWIDTH * m) + b;
                 }
 
                 //If the y coordinate is outside of the map from the top of the map find the x value such that y = 0;
@@ -218,13 +214,13 @@ public class LinearFunction {
 
                 //If the y coordinate is outside of the map from the bottom of the map find the x value such that y = 200;
                 //x = (200 - b) / m
-                else if (v2y > MAPMAX) {
-                    v2x = (MAPMAX - b) / m;
-                    v2y = MAPMAX;
+                else if (v2y > MAPHEIGHT) {
+                    v2x = (MAPHEIGHT - b) / m;
+                    v2y = MAPHEIGHT;
 
                 }
 
-                if(!(v1x > MAPMAX|| v1x < MAPMIN|| v2x > MAPMAX || v2x < MAPMIN || v1y > MAPMAX || v1y < MAPMIN || v2y > MAPMAX || v2y < MAPMIN)){
+                if(!(v1x > MAPWIDTH|| v1x < MAPMIN|| v2x > MAPWIDTH || v2x < MAPMIN || v1y > MAPHEIGHT || v1y < MAPMIN || v2y > MAPHEIGHT || v2y < MAPMIN)){
                     bool = true;
                 } else if( boolCounter++ > 10){
                     return null;

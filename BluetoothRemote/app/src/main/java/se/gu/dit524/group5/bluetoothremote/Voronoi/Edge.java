@@ -1,4 +1,4 @@
-package com.example.mghan.implementationvoronidijkstra;
+package se.gu.dit524.group5.bluetoothremote.Voronoi;
 
 public class Edge {
 
@@ -6,7 +6,6 @@ public class Edge {
     Node v2;
     int distance;
     String function;
-    LinearFunction functioner = new LinearFunction();
 
     public Edge(Node v1, Node v2, int distance) {
         this.v1 = v1;
@@ -14,12 +13,11 @@ public class Edge {
         this.distance = distance;
     }
 
-    public Edge(Node v1, Node v2){
+    public Edge(Node v1, Node v2, LinearFunction func){
         this.v1 = v1;
         this.v2 = v2;
         this.distance = (int)Math.round((Math.sqrt(Math.pow((v2.x - v1.x) ,2) + Math.pow((v2.y - v1.y) , 2))));
-        this.function = functioner.getLinearFunction(v1, v2);
-
+        this.function = func.getLinearFunction(v1, v2);
     }
 
     /**
@@ -28,7 +26,7 @@ public class Edge {
     @Override
     public String toString()
     {
-        return "Edge From: " + v1.identifier + " to: " + v2.identifier+ " distance: " + distance;
+        return "Edge From: " + v1.id + " to: " + v2.id + " distance: " + distance;
     }
 
     @Override
@@ -40,5 +38,22 @@ public class Edge {
         } else {
             return false;
         }
+    }
+
+    public Node n1() {
+        return this.v1;
+    }
+
+    public Node n2() {
+        return this.v2;
+    }
+
+    public Node destination(Node start) {
+        if (!start.equals(v1) && !start.equals(v2)) return null;
+        else return this.v1.equals(start) ? v2 : v1;
+    }
+
+    public int distance() {
+        return distance;
     }
 }

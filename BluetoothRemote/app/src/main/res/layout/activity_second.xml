@@ -48,7 +48,7 @@
         android:layout_height="200dp"
         android:max="180"
         android:progress="90"
-        android:layout_above="@+id/movementToggle"
+        android:layout_above="@+id/shadeToggle"
         android:layout_alignStart="@+id/throttleBar"
         tools:layout_editor_absoluteY="0dp"
         tools:layout_editor_absoluteX="0dp" />
@@ -59,7 +59,7 @@
         android:layout_height="wrap_content"
         android:layout_alignBottom="@+id/connectButton"
         android:layout_alignParentStart="true"
-        android:text="SCAN"
+        android:text="Scan"
         tools:layout_editor_absoluteY="0dp"
         tools:layout_editor_absoluteX="0dp" />
 
@@ -71,7 +71,7 @@
         android:layout_toEndOf="@+id/scanButton"
         android:checked="false"
         android:textOff="Manual"
-        android:textOn="SA"
+        android:textOn="Map"
         tools:layout_editor_absoluteY="0dp"
         tools:layout_editor_absoluteX="0dp" />
 
@@ -111,10 +111,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_above="@+id/movementToggle"
-        android:checked="false"
+        android:checked="true"
         android:visibility="invisible"
-        android:textOff="SHADES"
-        android:textOn="SHADES" />
+        android:textOff="Shades"
+        android:textOn="Shades" />
 
     <ToggleButton
         android:id="@+id/routeToggle"
@@ -124,8 +124,8 @@
         android:layout_toEndOf="@id/scanButton"
         android:checked="true"
         android:visibility="invisible"
-        android:textOff="ROUTE"
-        android:textOn="ROUTE" />
+        android:textOff="Route"
+        android:textOn="Route" />
 
     <TextView
         android:id="@+id/listOfMaps"
@@ -136,5 +136,15 @@
         android:layout_alignEnd="@+id/mapView"
         android:visibility="invisible"
         android:onClick="sendMessageToMaps"/>
+
+    <TextView
+        android:id="@+id/saveMap"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="SAVE MAP"
+        android:layout_alignParentTop="true"
+        android:layout_alignStart="@+id/mapView"
+        android:visibility="invisible"
+        android:onClick="saveMap"/>
 
 </RelativeLayout>

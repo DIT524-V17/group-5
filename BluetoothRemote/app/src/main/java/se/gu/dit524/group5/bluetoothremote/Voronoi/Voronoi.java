@@ -1,4 +1,4 @@
-package com.example.mghan.implementationvoronidijkstra;
+package se.gu.dit524.group5.bluetoothremote.Voronoi;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -26,7 +26,7 @@ public class Voronoi {
     private Bitmap voronoiMap;
     private LinearFunction linFun;
     private int nodeCounter;
-    public Graph voronoiGraph;
+    public  Graph voronoiGraph;
 
     public Voronoi(int mapHeight, int mapWidth){
         this.MAP_HEIGHT = mapHeight;
@@ -36,15 +36,20 @@ public class Voronoi {
         this.builder = new VoronoiDiagramBuilder();
         this.envelope = new Envelope(new Coordinate(MAP_MIN,MAP_MIN), new Coordinate(MAP_WIDTH,MAP_HEIGHT));
         this.voronoiMap = Bitmap.createBitmap(MAP_WIDTH, MAP_HEIGHT, Bitmap.Config.ARGB_4444);
-        this.linFun = new LinearFunction();
+        this.linFun = new LinearFunction(MAP_WIDTH, MAP_HEIGHT);
+        this.voronoiGraph = new Graph(linFun);
         this.nodeCounter = 0;
-        this.voronoiGraph = new Graph();
     }
 
     private Coordinate[] getPoylgonVertices(Polygon poly){
-
-        Coordinate[] cs = poly.getBoundary().getCoordinates();
-        return  cs;
+        Coordinate[] cs = null;
+        try {
+            cs = poly.getBoundary().getCoordinates();
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        return cs;
     }
 
     public void addSite(Coordinate site){
@@ -58,6 +63,12 @@ public class Voronoi {
 
     public Bitmap createVoronoi(){
         extractPolygonsFromGeometry();
+
+        Canvas c = new Canvas(this.voronoiMap);
+        Paint paint = new Paint();
+        paint.setAntiAlias(true);
+        paint.setStrokeWidth(2.0f);
+
         for(Polygon poly: this.polygons) {
             ArrayList tempIntCoords = new ArrayList();
             ArrayList tempIntCoords2 = new ArrayList();
@@ -74,11 +85,8 @@ public class Voronoi {
                 ys[i] = (int) tempIntCoords2.get(i);
             }
 
-            Canvas c = new Canvas(this.voronoiMap);
-            Paint paint = new Paint();
-            paint.setColor(Color.RED);
-            paint.setAntiAlias(true);
             paint.setStyle(Paint.Style.STROKE);
+            paint.setColor(Color.RED);
             Path p = new Path();
             p.moveTo(xs[0], ys[0]);
 
@@ -91,6 +99,20 @@ public class Voronoi {
         }
 
         return this.voronoiMap;
+    }
+
+    public void drawNodesAndEdges(Canvas c) {
+        Paint paint = new Paint();
+        paint.setAntiAlias(true);
+        paint.setStrokeWidth(1.5f);
+        paint.setColor(Color.GREEN);
+        paint.setStyle(Paint.Style.FILL_AND_STROKE);
+
+        for (Node n : this.voronoiGraph.nodes) c.drawCircle((float) n.x, (float) n.y, 2, paint);
+
+        paint.setColor(Color.LTGRAY);
+
+        for (Edge e : this.voronoiGraph.edges) c.drawLine((float) e.v1.x, (float) e.v1.y, (float) e.v2.x, (float) e.v2.y, paint);
     }
 
     public void extractVoronoiToGraph(){
@@ -108,20 +130,24 @@ public class Voronoi {
                     cs[i] = trimmedCoor[0];
                     cs[j] = trimmedCoor[1];
 
-                    Node ver = new Node(cs[i].x, cs[i].y, "Node " + this.nodeCounter);
+                    Node ver = new Node(cs[i].x, cs[i].y, this.nodeCounter);
                     if (this.voronoiGraph.addNode(ver)) {
                         this.nodeCounter++;
                     } else {
                         ver = this.voronoiGraph.findNode(ver);
                     }
-                    Node ver2 = new Node(cs[j].x, cs[j].y, "Node " + this.nodeCounter);
+                    Node ver2 = new Node(cs[j].x, cs[j].y, this.nodeCounter);
                     if (this.voronoiGraph.addNode(ver2)) {
                         this.nodeCounter++;
                     } else {
                         ver2 = this.voronoiGraph.findNode(ver2);
                     }
 
-                    this.voronoiGraph.addEdge(ver, ver2);
+                    Edge e = this.voronoiGraph.addEdge(ver, ver2);
+                    if (e != null) {
+                        ver.addNeighbour(ver2, e);
+                        ver2.addNeighbour(ver, e);
+                    }
                 }
             }
         }

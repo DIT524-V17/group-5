@@ -23,11 +23,11 @@ import static se.gu.dit524.group5.bluetoothremote.Mapping.Constants.*;
 
 public class Map {
     private BluetoothService btInterface;
-    private ArrayList<ScanResult> sensorReadings;
+    public ArrayList<ScanResult> sensorReadings;
     private MapParser mapParser;
     private Bitmap map, carOverlay, shadeOverlay, routeOverlay;
 
-    private Car car = new Car(SENSOR_MAX_DISTANCE, SENSOR_MAX_DISTANCE -CAR_HEIGHT /2 +WHEEL_REAR_OFFSET +WHEEL_HEIGHT /2, 0);
+    private Car car = new Car(SENSOR_MAX_DISTANCE, SENSOR_MAX_DISTANCE, 0);
     private Car lastCar = new Car(this.car);
     private Car lastScanCar = new Car(this.car);
 
@@ -59,14 +59,16 @@ public class Map {
         this.btInterface = btInterface;
     }
 
-    public void processMeasurement(ScanResult.SingleScan scan, Canvas canvas, Car car) {
+    private void processMeasurement(ScanResult.SingleScan scan, Canvas canvas, Car car) {
         this.resize();
 
         this.mapParser = new MapParser(canvas, car);
         this.mapParser.parse(scan.getDistanceA(), scan.getDistanceB(), scan.getAngle());
     }
 
-    public void removeCollidingObstacles(ScanResult.SingleScan scan, Canvas canvas, Car car) {
+    private void removeCollidingObstacles(ScanResult.SingleScan scan, Canvas canvas, Car car) {
+        this.resize();
+
         this.mapParser = new MapParser(canvas, car);
         this.mapParser.clean(scan.getDistanceA(), scan.getDistanceB(), scan.getAngle());
     }
@@ -87,22 +89,22 @@ public class Map {
         return this.routeOverlay;
     }
 
-    private static final int NO_RESIZE = 0;
-    private static final int ADVANCE_LEFT= 1;
-    private static final int ADVANCE_RIGHT = 2;
-    private static final int ADVANCE_TOP = 4;
-    private static final int ADVANCE_BOTTOM = 8;
-
     public void resize() {
-        int rFlag = NO_RESIZE;
-        if (this.car.servo().x +SENSOR_MAX_DISTANCE >= this.map.getWidth()) rFlag += ADVANCE_RIGHT;
-        if (this.car.servo().y +SENSOR_MAX_DISTANCE >= this.map.getHeight()) rFlag += ADVANCE_BOTTOM;
-        if (this.car.servo().x -SENSOR_MAX_DISTANCE < 0) rFlag += ADVANCE_LEFT;
-        if (this.car.servo().y -SENSOR_MAX_DISTANCE < 0) rFlag += ADVANCE_TOP;
-        if (rFlag == NO_RESIZE) return;
+        float addR = this.car.servo().x +SENSOR_MAX_DISTANCE +SERVO_OFFSET -this.map.getWidth();
+        float addB = this.car.servo().y +SENSOR_MAX_DISTANCE +SERVO_OFFSET -this.map.getHeight();
+        float addL = -(this.car.servo().x -SENSOR_MAX_DISTANCE -SERVO_OFFSET);
+        float addT = -(this.car.servo().y -SENSOR_MAX_DISTANCE -SERVO_OFFSET);
 
-        Bitmap bmp;
+        if (addR <= 0 && addB <= 0 && addL <= 0 && addT <= 0) return;
+        else {
+            if (addR < 0) addR = 0;
+            if (addB < 0) addB = 0;
+            if (addL < 0) addL = 0;
+            if (addT < 0) addT = 0;
+        }
+
         for (int i = 0; i < 4; i++) {
+            Bitmap bmp;
             switch (i) {
                 case 0: bmp = this.map; break;
                 case 1: bmp = this.carOverlay; break;
@@ -112,11 +114,8 @@ public class Map {
             }
 
             Bitmap combined = Bitmap.createBitmap(
-                    (int) (bmp.getWidth() +(((rFlag &ADVANCE_LEFT) >= 1 || (rFlag &ADVANCE_RIGHT) >= 1) ?
-                            Math.abs(SENSOR_MAX_DISTANCE -this.car.servo().x) : 0)),
-                    (int) (bmp.getHeight() +(((rFlag &ADVANCE_TOP) >= 1 || (rFlag &ADVANCE_BOTTOM) >= 1) ?
-                            Math.abs(SENSOR_MAX_DISTANCE -this.car.servo().y) : 0)),
-                    Bitmap.Config.ARGB_4444);
+                    (int) (bmp.getWidth() +addL +addR),
+                    (int) (bmp.getHeight() +addT +addB), Bitmap.Config.ARGB_4444);
 
             int[] pixels = new int[bmp.getWidth() *bmp.getHeight()];
             bmp.getPixels(pixels, 0,
@@ -126,8 +125,8 @@ public class Map {
 
             combined.setPixels(pixels, 0,
                     bmp.getWidth(),
-                    (int) ((rFlag &ADVANCE_LEFT) >= 1 ? Math.abs(SENSOR_MAX_DISTANCE -this.car.servo().x) : 0),
-                    (int) ((rFlag &ADVANCE_TOP) >= 1 ? Math.abs(SENSOR_MAX_DISTANCE -this.car.servo().y) : 0),
+                    (int) (addL),
+                    (int) (addT),
                     bmp.getWidth(),
                     bmp.getHeight());
 
@@ -140,22 +139,11 @@ public class Map {
             }
         }
 
-        updateCarPosition(
-                (rFlag &ADVANCE_LEFT) >= 1 ? Math.abs(SENSOR_MAX_DISTANCE -this.car.center().x) : 0,
-                (rFlag &ADVANCE_TOP) >= 1 ? Math.abs(SENSOR_MAX_DISTANCE -this.car.center().y) : 0, false, false);
-        updateLastCarPosition(
-                (rFlag &ADVANCE_LEFT) >= 1 ? Math.abs(SENSOR_MAX_DISTANCE -this.lastCar.center().x) : 0,
-                (rFlag &ADVANCE_TOP) >= 1 ? Math.abs(SENSOR_MAX_DISTANCE -this.lastCar.center().y) : 0);
-        updateLastScanCarPosition(
-                (rFlag &ADVANCE_LEFT) >= 1 ? Math.abs(SENSOR_MAX_DISTANCE -this.lastScanCar.center().x) : 0,
-                (rFlag &ADVANCE_TOP) >= 1 ? Math.abs(SENSOR_MAX_DISTANCE -this.lastScanCar.center().y) : 0);
+        updateCarPosition(addL, addT, false, false);
+        updateLastCarPosition(addL, addT);
+        updateLastScanCarPosition(addL, addT);
 
-        for (ScanResult scan : this.sensorReadings) {
-            scan.car().alterPosition(
-                (rFlag &ADVANCE_LEFT) >= 1 ? Math.abs(SENSOR_MAX_DISTANCE -scan.car().center().x) : 0,
-                (rFlag &ADVANCE_TOP) >= 1 ? Math.abs(SENSOR_MAX_DISTANCE -scan.car().center().y) : 0
-            );
-        }
+        for (ScanResult scan : this.sensorReadings) scan.car().alterPosition(addL, addT);
     }
 
     public void drawCar() {
@@ -164,7 +152,6 @@ public class Map {
         Canvas shadeCanvas = new Canvas(this.shadeOverlay);
         Canvas routeCanvas = new Canvas(this.routeOverlay);
 
-        // this.lastCar.erase(carCanvas);
         this.lastCar.drawShade(shadeCanvas);
         this.car.draw(carCanvas);
 
@@ -238,14 +225,12 @@ public class Map {
 
         redrawMap(); */
 
+        this.resize();
         if (scanResult.car() == null) {
             scanResult.setCar(this.car);
             this.setLastScanCar(this.car);
         }
         this.sensorReadings.add(scanResult);
-
-        // TODO: fix this!
-        // if (scanResult.car().equals(this.car)) this.resize();
 
         Bitmap out = Bitmap.createBitmap(this.map.getWidth(), this.map.getHeight(), Bitmap.Config.ARGB_4444);
         Bitmap poi = Bitmap.createBitmap(this.map.getWidth(), this.map.getHeight(), Bitmap.Config.ARGB_4444);
@@ -265,14 +250,14 @@ public class Map {
 
         Paint p = new Paint();
         p.setAntiAlias(true);
-        p.setColor(Color.WHITE);
-        poiCanvas.drawCircle(scanResult.car().servo().x, scanResult.car().servo().y, SENSOR_MAX_DISTANCE, p);
+        //p.setColor(Color.WHITE);
+        poiCanvas.drawCircle(scanResult.car().servo().x -0.5f, scanResult.car().servo().y +0.5f, SENSOR_MAX_DISTANCE +1.0f, p);
 
         p.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.MULTIPLY));
         outCanvas.drawBitmap(poi, 0, 0, p);
 
-        p.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DST_OUT));
-        mapCanvas.drawBitmap(out, 0, 0, null);
+        p.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.OVERLAY));
+        mapCanvas.drawBitmap(out, 0, 0, p);
 
         // DBG
         /*

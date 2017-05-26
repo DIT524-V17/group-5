@@ -15,9 +15,14 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
+import com.vividsolutions.jts.geom.Coordinate;
+
 import java.util.Random;
 
+import se.gu.dit524.group5.bluetoothremote.Dijkstra.FastFinder;
 import se.gu.dit524.group5.bluetoothremote.Mapping.Map;
+import se.gu.dit524.group5.bluetoothremote.Voronoi.Node;
+import se.gu.dit524.group5.bluetoothremote.Voronoi.Voronoi;
 
 import static se.gu.dit524.group5.bluetoothremote.Mapping.Constants.*;
 
@@ -30,10 +35,10 @@ public class ActivitySecond extends AppCompatActivity {
     private BluetoothService btService;
     private SeekBar throttleBar, angleBar;
     private PointF lastSteeringDirection;
-    private TextView posView, targetView, listOfMaps;
+    private TextView posView, targetView, listOfMaps, saveMap;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_second);
 
@@ -48,10 +53,44 @@ public class ActivitySecond extends AppCompatActivity {
                 lastSteeringDirection = null;
                 map = new Map(btService);
                 redrawMap();
+
+                /* VORO-ROUTE-NOI-THING-STUFF...
+                 *
+                System.out.println("GENERATING...");
+                Voronoi voronoi = new Voronoi(SENSOR_MAX_DISTANCE *20, SENSOR_MAX_DISTANCE *20);
+                Random rnd = new Random();
+                for (int i = 0; i < 10000; i++)
+                    voronoi.addSite(
+                            new Coordinate(
+                            rnd.nextInt(SENSOR_MAX_DISTANCE *20),
+                            rnd.nextInt(SENSOR_MAX_DISTANCE *20)));
+
+                Bitmap voronoiBitmap = voronoi.createVoronoi();
+                voronoi.extractVoronoiToGraph();
+                voronoi.drawNodesAndEdges(new Canvas(voronoiBitmap));
+
+                mapView.setImageBitmap(voronoiBitmap);
+
+                System.out.println("SEARCHING...");
+                int src = rnd.nextInt(voronoi.voronoiGraph.getNodes().size());
+                int dst = rnd.nextInt(voronoi.voronoiGraph.getNodes().size());
+                Node[] route =
+                        FastFinder.findRoute(
+                            voronoi.voronoiGraph,
+                            voronoi.voronoiGraph.getNodes().get(src),
+                            voronoi.voronoiGraph.getNodes().get(dst));
+
+                for (int i = 0; i < route.length; i++) {
+                    if (i == 0) System.out.println("FROM " +src +" TO " +route[0].id());
+                    else System.out.println("FROM " +route[i -1].id() +" TO " +route[i].id());
+                    if (i == route.length -1 && route[i].id() == dst)
+                        System.out.println("YOU'VE REACHED YOUR DESTINATION.");
+                } */
             }
         });
 
         listOfMaps = (TextView) this.findViewById(R.id.listOfMaps);
+        saveMap = (TextView) this.findViewById(R.id.saveMap);
         shadeToggle = (ToggleButton) this.findViewById(R.id.shadeToggle);
         routeToggle = (ToggleButton) this.findViewById(R.id.routeToggle);
         View.OnClickListener mapToggleOCL = new View.OnClickListener() {
@@ -78,6 +117,7 @@ public class ActivitySecond extends AppCompatActivity {
                     shadeToggle.setVisibility(View.VISIBLE);
                     routeToggle.setVisibility(View.VISIBLE);
                     listOfMaps.setVisibility(View.VISIBLE);
+                    saveMap.setVisibility(View.VISIBLE);
 
                 }
                 else {
@@ -91,6 +131,7 @@ public class ActivitySecond extends AppCompatActivity {
                     shadeToggle.setVisibility(View.INVISIBLE);
                     routeToggle.setVisibility(View.INVISIBLE);
                     listOfMaps.setVisibility(View.INVISIBLE);
+                    saveMap.setVisibility(View.INVISIBLE);
                 }
             }
         });
@@ -119,13 +160,7 @@ public class ActivitySecond extends AppCompatActivity {
                 updateTargetView(dest);
 
                 if (event.getAction() == MotionEvent.ACTION_UP) {
-                    /*
                     targetView.setVisibility(View.INVISIBLE);
-
-                    lastSteeringDirection = new PointF(dest.x -map.getCar().center().x, dest.y -map.getCar().center().y);
-                    map.updateCarPosition(lastSteeringDirection.x, lastSteeringDirection.y, true, true); */
-
-                    // Is MARBLE out of order? Use the snippet below.
 
                     lastSteeringDirection = new PointF(dest.x -map.getCar().center().x, dest.y -map.getCar().center().y);
                     if (map.updateCarPosition(lastSteeringDirection.x, lastSteeringDirection.y, true, true)) {
@@ -186,10 +221,8 @@ public class ActivitySecond extends AppCompatActivity {
                 int pos = 0;
                 while (pos < fakeResults.length /3) {
                     fakeResults[pos *3 +0] = (byte)(pos *SERVO_TURN_DEGREES);
-                    fakeResults[pos *3 +1] = (byte)(rnd.nextInt(SENSOR_MAX_DISTANCE));
-                    fakeResults[pos *3 +2] = (byte)(rnd.nextInt(SENSOR_MAX_DISTANCE));
-                    //fakeResults[pos *3 +1] = (byte)(SENSOR_MAX_DISTANCE /2 /*+pos *2*/);
-                    //fakeResults[pos *3 +2] = (byte)(SENSOR_MAX_DISTANCE /2 /*+pos *2*/);
+                    fakeResults[pos *3 +1] = (byte)(/* rnd.nextInt(SENSOR_MAX_DISTANCE) */ SENSOR_MAX_DISTANCE);
+                    fakeResults[pos *3 +2] = (byte)(/* rnd.nextInt(SENSOR_MAX_DISTANCE) */ SENSOR_MAX_DISTANCE);
                     pos++;
                 }
                 updateMap(new ScanResult(fakeResults, 0, fakeResults.length));
@@ -241,7 +274,6 @@ public class ActivitySecond extends AppCompatActivity {
     }
 
     public void updateMap(ScanResult scanResult) {
-        scanResult.setCar(this.map.getCar());
         this.map.setLastScanCar(this.map.getCar());
         this.map.processScanResult(scanResult);
 
@@ -310,5 +342,9 @@ public class ActivitySecond extends AppCompatActivity {
     public void sendMessageToMaps(View view){
         Intent intent = new Intent(this, ActivityThird.class);
         this.startActivity(intent);
+    }
+
+    public void saveMap(View view) {
+        System.out.println("THIS FUNCTION IS YET TO BE IMPLEMENTED.");
     }
 }

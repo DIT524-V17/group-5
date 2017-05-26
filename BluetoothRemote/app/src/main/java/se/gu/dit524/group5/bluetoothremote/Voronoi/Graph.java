@@ -1,24 +1,28 @@
-package com.example.mghan.implementationvoronidijkstra;
+package se.gu.dit524.group5.bluetoothremote.Voronoi;
 import java.util.ArrayList;
 
 public class Graph {
     protected ArrayList<Node> nodes;
     protected ArrayList<Edge> edges;
+    private LinearFunction linFunc;
 
-    public Graph() {
+    public Graph(LinearFunction linearFunction) {
         nodes = new ArrayList<>();
         edges = new ArrayList<>();
+        this.linFunc = linearFunction;
     }
 
-
-    public void addEdge(Node v1, Node v2) {
-        if(v1.equals(v2) || ((v1.x == 0.0 && v1.y == 0) && (v2.x == 0.0 && v2.y == 0))){return;}
-        Edge temp = findEdge(new Edge(v1, v2));
+    public Edge addEdge(Node v1, Node v2) {
+        if(v1.equals(v2) || ((v1.x == 0.0 && v1.y == 0) && (v2.x == 0.0 && v2.y == 0))) return null;
+        Edge temp = findEdge(new Edge(v1, v2, linFunc));
         if (temp != null) {
             // Don't allow multiple edges, update cost.
-            System.out.println("Edge " + v1.identifier+ "," + v2.identifier + " already exists.");
+            // System.out.println("Edge " + v1.id + "," + v2.id + " already exists.");
+            return null;
         } else {
-            this.edges.add(new Edge(v1, v2));
+            Edge e = new Edge(v1, v2, linFunc);
+            this.edges.add(e);
+            return e;
         }
     }
 
@@ -29,7 +33,6 @@ public class Graph {
         }
         return null;
     }
-
 
     private Edge findEdge(Edge e) {
         for (Edge each : edges) {
@@ -45,9 +48,16 @@ public class Graph {
             nodes.add(v);
             return true;
         } else{
-            System.out.println("Node " + v.identifier + " already exists in the graph");
+            // System.out.println("Node " + v.id + " already exists in the graph");
             return false;
         }
     }
 
+    public ArrayList<Node> getNodes() {
+        return nodes;
+    }
+
+    public ArrayList<Edge> getEdges() {
+        return edges;
+    }
 }
