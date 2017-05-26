@@ -1,7 +1,11 @@
 package se.gu.dit524.group5.bluetoothremote;
 
+import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.PointF;
 import android.os.Bundle;
@@ -17,6 +21,12 @@ import android.widget.ToggleButton;
 
 import com.vividsolutions.jts.geom.Coordinate;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Random;
 
 import se.gu.dit524.group5.bluetoothremote.Dijkstra.FastFinder;
@@ -360,7 +370,59 @@ public class ActivitySecond extends AppCompatActivity {
         this.startActivity(intent);
     }
 
-    public void saveMap(View view) {
-        System.out.println("THIS FUNCTION IS YET TO BE IMPLEMENTED.");
+    //added by Ameera 26/05/2017
+    private String saveMap(Bitmap bitmapImage) {
+            ContextWrapper cw = new ContextWrapper(getApplicationContext());
+            File directory = cw.getDir("mapDirectory", Context.MODE_PRIVATE);
+
+            //defining method for formatted date
+            Calendar c = Calendar.getInstance();
+            System.out.println("Current time => " + c.getTime());
+
+            SimpleDateFormat df = new SimpleDateFormat("dd-MMM-yyyy_H-m-s-S");
+            String formattedDate = df.format(c.getTime());
+
+            // Create imageDir
+            File mypath = new File(directory, "map_" + formattedDate + ".jpg");
+
+            FileOutputStream fos = null;
+            try {
+
+                fos = new FileOutputStream(mypath);
+
+                // Use the compress method on the BitMap object to write image to
+                // the OutputStream
+                bitmapImage.compress(Bitmap.CompressFormat.PNG, 100, fos);
+                fos.close();
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return directory.getAbsolutePath();
+    }
+
+
+    private void loadImage(String path) {
+
+            try {
+                //defining method for formatted date
+                Calendar c = Calendar.getInstance();
+                System.out.println("Current time => " + c.getTime());
+
+                SimpleDateFormat df = new SimpleDateFormat("dd-MMM-yyyy_H-m-s-S");
+                String formattedDate = df.format(c.getTime());
+
+
+                ContextWrapper cw = new ContextWrapper(getApplicationContext());
+                File path1 = cw.getDir("mapDirectory", Context.MODE_PRIVATE);
+                File f = new File(path1, "map_" + formattedDate + ".jpg");
+                Bitmap b = BitmapFactory.decodeStream(new FileInputStream(f));
+                // this is where the image should be processed
+                ImageView img = (ImageView) findViewById(R.id.viewImage);
+                img.setImageBitmap(b);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+
     }
 }
