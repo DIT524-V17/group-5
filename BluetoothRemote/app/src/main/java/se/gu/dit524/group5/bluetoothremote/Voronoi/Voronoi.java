@@ -61,6 +61,10 @@ public class Voronoi {
         this.sites.add(site);
     }
 
+    public ArrayList<Coordinate> getSites() {
+        return this.sites;
+    }
+
     public Bitmap createVoronoi(){
         extractPolygonsFromGeometry();
 

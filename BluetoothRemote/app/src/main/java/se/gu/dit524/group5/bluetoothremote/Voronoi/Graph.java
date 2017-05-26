@@ -4,7 +4,7 @@ import java.util.ArrayList;
 public class Graph {
     protected ArrayList<Node> nodes;
     protected ArrayList<Edge> edges;
-    private LinearFunction linFunc;
+    private   LinearFunction linFunc;
 
     public Graph(LinearFunction linearFunction) {
         nodes = new ArrayList<>();

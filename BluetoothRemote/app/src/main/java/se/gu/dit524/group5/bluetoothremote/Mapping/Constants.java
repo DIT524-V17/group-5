@@ -21,5 +21,5 @@ public class Constants {
     public static final float SERVO_OFFSET =        CAR_HEIGHT /2 -WHEEL_REAR_OFFSET -WHEEL_HEIGHT /2;
 
     public static final int OBSTACLE_INTENSITY =    0xFF;
-    public static final int FREE_SPACE_INTENSITY =  0x33;
+    public static final int FREE_SPACE_INTENSITY =  0x22;
 }

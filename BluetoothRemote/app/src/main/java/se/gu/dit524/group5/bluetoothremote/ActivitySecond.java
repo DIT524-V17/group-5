@@ -29,11 +29,12 @@ import static se.gu.dit524.group5.bluetoothremote.Mapping.Constants.*;
 public class ActivitySecond extends AppCompatActivity {
 
     private Button connect, scan, reset;
-    private ToggleButton movement, shadeToggle, routeToggle;
     private Map map;
+    private Voronoi voronoi;
     private ImageView mapView;
     private BluetoothService btService;
-    private SeekBar throttleBar, angleBar;
+    private ToggleButton movement, shadeToggle, routeToggle, concreteToggle, voronoiToggle;
+    private SeekBar throttleBar, angleBar, obstacleThreshold;
     private PointF lastSteeringDirection;
     private TextView posView, targetView, listOfMaps, saveMap;
 
@@ -89,18 +90,52 @@ public class ActivitySecond extends AppCompatActivity {
             }
         });
 
-        listOfMaps = (TextView) this.findViewById(R.id.listOfMaps);
         saveMap = (TextView) this.findViewById(R.id.saveMap);
+        listOfMaps = (TextView) this.findViewById(R.id.listOfMaps);
+
         shadeToggle = (ToggleButton) this.findViewById(R.id.shadeToggle);
         routeToggle = (ToggleButton) this.findViewById(R.id.routeToggle);
+        concreteToggle = (ToggleButton) this.findViewById(R.id.concreteMapToggle);
+        voronoiToggle = (ToggleButton) this.findViewById(R.id.voronoiInputToggle);
+
         View.OnClickListener mapToggleOCL = new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                redrawMap();
+                if (v.equals(concreteToggle)) {
+                    if (concreteToggle.isChecked()) obstacleThreshold.setVisibility(View.VISIBLE);
+                    else obstacleThreshold.setVisibility(View.INVISIBLE);
+                    redrawMap();
+                }
+                else if (voronoiToggle.isChecked()) {
+                    if (voronoi == null) {
+                        voronoi = new Voronoi(map.getMap().getWidth(), map.getMap().getHeight());
+                    }
+                }
+                else redrawMap();
             }
         };
         shadeToggle.setOnClickListener(mapToggleOCL);
         routeToggle.setOnClickListener(mapToggleOCL);
+        concreteToggle.setOnClickListener(mapToggleOCL);
+        voronoiToggle.setOnClickListener(mapToggleOCL);
+
+        obstacleThreshold = (SeekBar) this.findViewById(R.id.obsThreshold);
+        obstacleThreshold.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                redrawMap();
+            }
+        });
 
         movement = (ToggleButton) this.findViewById(R.id.movementToggle);
         movement.setOnClickListener(new View.OnClickListener() {
@@ -116,6 +151,8 @@ public class ActivitySecond extends AppCompatActivity {
                     angleBar.setVisibility(View.INVISIBLE);
                     shadeToggle.setVisibility(View.VISIBLE);
                     routeToggle.setVisibility(View.VISIBLE);
+                    concreteToggle.setVisibility(View.VISIBLE);
+                    voronoiToggle.setVisibility(View.VISIBLE);
                     listOfMaps.setVisibility(View.VISIBLE);
                     saveMap.setVisibility(View.VISIBLE);
 
@@ -130,6 +167,9 @@ public class ActivitySecond extends AppCompatActivity {
                     angleBar.setVisibility(View.VISIBLE);
                     shadeToggle.setVisibility(View.INVISIBLE);
                     routeToggle.setVisibility(View.INVISIBLE);
+                    concreteToggle.setVisibility(View.INVISIBLE);
+                    voronoiToggle.setVisibility(View.INVISIBLE);
+                    obstacleThreshold.setVisibility(View.INVISIBLE);
                     listOfMaps.setVisibility(View.INVISIBLE);
                     saveMap.setVisibility(View.INVISIBLE);
                 }
@@ -141,49 +181,37 @@ public class ActivitySecond extends AppCompatActivity {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 if (mapView.getVisibility() == View.INVISIBLE) return false;
+                else {
+                    float mvWidth = mapView.getMeasuredWidth();
+                    float widthCR = mvWidth / map.getMap().getWidth();
+                    float mvHeight = mapView.getMeasuredHeight();
+                    float heightCR = mvHeight / map.getMap().getHeight();
 
-                float mvWidth = mapView.getMeasuredWidth();
-                float widthCR = mvWidth /map.getMap().getWidth();
-                float mvHeight = mapView.getMeasuredHeight();
-                float heightCR = mvHeight /map.getMap().getHeight();
+                    float x = event.getX();
+                    if (x < 0) x = 0;
+                    else if (x >= mapView.getMeasuredWidth()) x = mapView.getMeasuredWidth();
+                    float y = event.getY();
+                    if (y < 0) y = 0;
+                    else if (y >= mapView.getMeasuredHeight()) y = mapView.getMeasuredHeight();
 
-                float x = event.getX();
-                if (x < 0) x = 0;
-                else if (x >= mapView.getMeasuredWidth()) x = mapView.getMeasuredWidth();
-                float y = event.getY();
-                if (y < 0) y = 0;
-                else if (y >= mapView.getMeasuredHeight()) y = mapView.getMeasuredHeight();
+                    PointF dest = new PointF(x / widthCR, y / heightCR);
 
-                PointF dest = new PointF(x /widthCR, y /heightCR);
+                    if (!voronoiToggle.isChecked()) {
+                        targetView.setVisibility(View.VISIBLE);
+                        updateTargetView(dest);
 
-                targetView.setVisibility(View.VISIBLE);
-                updateTargetView(dest);
+                        if (event.getAction() == MotionEvent.ACTION_UP) {
+                            targetView.setVisibility(View.INVISIBLE);
 
-                if (event.getAction() == MotionEvent.ACTION_UP) {
-                    targetView.setVisibility(View.INVISIBLE);
-
-                    lastSteeringDirection = new PointF(dest.x -map.getCar().center().x, dest.y -map.getCar().center().y);
-                    if (map.updateCarPosition(lastSteeringDirection.x, lastSteeringDirection.y, true, true)) {
-                        updateCarPosition();
+                            lastSteeringDirection = new PointF(dest.x - map.getCar().center().x, dest.y - map.getCar().center().y);
+                            if (map.updateCarPosition(lastSteeringDirection.x, lastSteeringDirection.y, true, true)) {
+                                updateCarPosition();
+                            }
+                        }
                     }
-
-                    /* * *
-                     * THE FOLLOWING CODE IS OLD AND WEIRD... THINK TWICE BEFORE UNCOMMENTING!
-                     *
-                    lastSteeringDirection = new PointF(dest.x -map.getCar().center().x, dest.y -map.getCar().center().y);
-                    byte bx = (byte)(Math.abs((int)lastSteeringDirection.x) &0x7F);
-                    bx = (byte)(lastSteeringDirection.x >= 0 ? bx : (bx |0b10000000));
-                    byte by = (byte)(Math.abs((int)lastSteeringDirection.y) &0x7F);
-                    by = (byte)(lastSteeringDirection.y >= 0 ? by : (by |0b10000000));
-
-                    if (btService != null && !btService.awaitingSteeringCallback) {
-                        btService.awaitingSteeringCallback = true;
-                        btService.send(new Instruction(new byte[]{0x22, bx, by}, 0));
-
-                        // System.out.println("X: " +(((bx & 0x80) >= 1) ? "-" : "+") +(bx & 0x7F));
-                        // System.out.println("Y: " +(((by & 0x80) >= 1) ? "-" : "+") +(by & 0x7F));
+                    else {
+                        voronoi.addSite(new Coordinate(dest.x, dest.y));
                     }
-                    * * */
                 }
                 return true;
             }
@@ -215,17 +243,17 @@ public class ActivitySecond extends AppCompatActivity {
                     btService.send(new Instruction(new byte[]{ (byte)0xF1, SERVO_TURN_DEGREES }, 1, BluetoothService.SCANNING), true);
 
                 // Is MARBLE out of order? Use the snippet below.
-
+                /*
                 byte[] fakeResults = new byte[180 /SERVO_TURN_DEGREES *3];
                 Random rnd = new Random();
                 int pos = 0;
                 while (pos < fakeResults.length /3) {
                     fakeResults[pos *3 +0] = (byte)(pos *SERVO_TURN_DEGREES);
-                    fakeResults[pos *3 +1] = (byte)(/* rnd.nextInt(SENSOR_MAX_DISTANCE) */ SENSOR_MAX_DISTANCE);
-                    fakeResults[pos *3 +2] = (byte)(/* rnd.nextInt(SENSOR_MAX_DISTANCE) */ SENSOR_MAX_DISTANCE);
+                    fakeResults[pos *3 +1] = (byte)(rnd.nextInt(SENSOR_MAX_DISTANCE));
+                    fakeResults[pos *3 +2] = (byte)(rnd.nextInt(SENSOR_MAX_DISTANCE));
                     pos++;
                 }
-                updateMap(new ScanResult(fakeResults, 0, fakeResults.length));
+                updateMap(new ScanResult(fakeResults, 0, fakeResults.length)); */
             }
         });
 
@@ -276,27 +304,11 @@ public class ActivitySecond extends AppCompatActivity {
     public void updateMap(ScanResult scanResult) {
         this.map.setLastScanCar(this.map.getCar());
         this.map.processScanResult(scanResult);
-
         redrawMap();
-
-        // ### THIS IS JUST OLD ####
-        /*
-        for (ScanResult.SingleScan scan : scanResult.scans) this.map.processMeasurement(scan, null, scanResult.car);
-
-        previousReadings.add(scanResult);
-        this.map.setCar(this.map.getLastScanCar());
-
-        for (ScanResult prevScan : previousReadings) {
-            for (ScanResult.SingleScan scan : prevScan.scans)
-                this.map.removeCollidingObstacles(scan, null, prevScan.car);
-        }
-
-        // for (ScanResult.SingleScan scan : scanResult.scans) this.map.removeCollidingObstacles(scan, scanResult.car); */
     }
 
     public void updateCarPosition() {
-        // TODO: think about blocking any further map interaction until MARBLE's done.
-
+        // TODO: think about blocking any further map interaction until MARBLE is done.
         this.lastSteeringDirection = null;
         redrawMap();
     }
@@ -306,7 +318,11 @@ public class ActivitySecond extends AppCompatActivity {
         handler.post(new Runnable() {
             @Override
             public void run() {
-                Bitmap bmp = Bitmap.createBitmap(map.getMap());
+                Bitmap bmp;
+
+                if (!concreteToggle.isChecked()) bmp = Bitmap.createBitmap(map.getMap());
+                else bmp = Bitmap.createBitmap(map.generateConcreteMap(obstacleThreshold.getProgress()));
+
                 Canvas c = new Canvas(bmp);
 
                 if (routeToggle.isChecked()) c.drawBitmap(map.getRouteOverlay(), 0, 0, null);

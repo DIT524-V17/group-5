@@ -42,10 +42,6 @@ public class BluetoothService {
 
     private static final int AWAITING_SCAN_RESULTS     = 4;
 
-    // public boolean awaitingSteeringCallback;
-    // public int awaitingSteeringCallbacks;
-    // public boolean awaitingScanResults;
-
     public BluetoothService() {
         this.commandQueue = new PriorityQueue<>();
         this.handler = new Handler();
