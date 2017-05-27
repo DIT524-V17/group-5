@@ -98,9 +98,9 @@ public class DijkstraAlgorithm {
     private double getDistance(Node n1, Node n2){
         for (Edge e : edges){
             if(e.n1.equals(n1) && e.n2.equals(n2))
-                return e.weight;
+                return e.distance;
             if(e.n1.equals(n2) && e.n2.equals(n1))
-                return e.weight;
+                return e.distance;
 
         }
         throw new RuntimeException("you done messed up");
