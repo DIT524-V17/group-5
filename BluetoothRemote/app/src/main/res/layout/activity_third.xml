@@ -3,29 +3,62 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
     android:background="@color/colorPrimary">
 
-
-
     <TextView
-        android:id="@+id/textView3"
+        android:id="@+id/backToMapping"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentStart="true"
-        android:layout_alignParentTop="true"
+        android:layout_alignParentBottom="true"
         android:layout_marginStart="15dp"
-        android:layout_marginTop="14dp"
+        android:layout_marginBottom="14dp"
         android:text="BACK TO MAPPING"
         android:textColor="@android:color/white"
-        android:onClick="sendMessage"/>
+        android:onClick="returnToMap"/>
+
+    <TextView
+        android:id="@+id/loadSelected"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginEnd="15dp"
+        android:layout_marginBottom="14dp"
+        android:text="LOAD SELECTED"
+        android:textColor="@android:color/white"
+        android:onClick="returnToMap"/>
 
     <ImageView
         android:id="@+id/imageView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="14dp"
-        app:srcCompat="@drawable/listofmaps"
-        android:layout_below="@+id/textView3"
         android:layout_alignParentStart="true"
- />
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="14dp"
+        app:srcCompat="@drawable/listofmaps" />
+
+    <ImageView
+        android:id="@+id/mapPreview"
+        android:layout_width="240dp"
+        android:layout_height="240dp"
+        android:layout_alignParentBottom="false"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@id/imageView"
+        android:layout_marginTop="14dp"
+        android:scaleType="fitCenter"
+        android:background="@drawable/mapview_border" />
+
+    <ListView
+        android:id="@+id/fileList"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/mapPreview"
+        android:layout_above="@id/loadSelected"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="20dp" >
+
+    </ListView>
+
 </RelativeLayout>

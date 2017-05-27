@@ -164,7 +164,8 @@
         android:layout_height="wrap_content"
         android:layout_above="@+id/concreteMapToggle"
         android:layout_alignParentEnd="true"
-        android:layout_alignStart="@+id/concreteMapToggle"
+        android:layout_alignStart="@+id/voronoiInputToggle"
+        android:layout_alignEnd="@+id/concreteMapToggle"
         android:visibility="invisible"
         android:max="255"
         android:progress="192" />

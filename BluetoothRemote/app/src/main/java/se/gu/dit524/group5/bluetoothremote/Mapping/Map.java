@@ -45,6 +45,17 @@ public class Map {
         this(width, height, null);
     }
 
+    public Map(Bitmap map, BluetoothService btInterface) {
+        this(map.getWidth(), map.getHeight(), btInterface);
+        this.rawMap = map;
+
+        // TODO: parse this.car ...?
+        this.car = new Car(0, 0, 0);
+        this.lastCar = new Car(this.car);
+        this.lastScanCar = new Car(this.car);
+
+    }
+
     public Map(int width, int height, BluetoothService btInterface) {
         this.btInterface = btInterface;
         this.sensorReadings = new ArrayList<>();
@@ -55,6 +66,10 @@ public class Map {
         this.routeOverlay = Bitmap.createBitmap(this.rawMap.getWidth(), this.rawMap.getHeight(), Bitmap.Config.ARGB_4444);
 
         this.drawCar();
+    }
+
+    public void parsePreparedMap() {
+
     }
 
     public void setBluetoothInterface(BluetoothService btInterface) {

@@ -2,8 +2,8 @@ package se.gu.dit524.group5.bluetoothremote;
 
 import android.content.Context;
 import android.content.ContextWrapper;
+import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -11,6 +11,7 @@ import android.graphics.Color;
 import android.graphics.PointF;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MotionEvent;
 import android.view.View;
@@ -19,6 +20,7 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import com.vividsolutions.jts.geom.Coordinate;
@@ -28,6 +30,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Random;
 
@@ -40,13 +43,13 @@ import static se.gu.dit524.group5.bluetoothremote.Mapping.Constants.*;
 
 public class ActivitySecond extends AppCompatActivity {
 
-    private Button connect, scan, reset, vCancel, vDone, vAuto;
+    private Button connect, scan, reset, vDone;
     private Map map;
     private RelativeLayout activityLayout;
     private Voronoi voronoi;
     private ImageView mapView;
     private BluetoothService btService;
-    private ToggleButton movement, shadeToggle, routeToggle, concreteToggle, voronoiToggle;
+    private ToggleButton movement, shadeToggle, routeToggle, concreteToggle, voronoiToggle, vAuto, vSiteToggle;
     private SeekBar throttleBar, angleBar, obstacleThreshold;
     private PointF lastSteeringDirection;
     private TextView posView, targetView, listOfMaps, saveMap;
@@ -67,6 +70,7 @@ public class ActivitySecond extends AppCompatActivity {
             public void onClick(View v) {
                 lastSteeringDirection = null;
                 map = new Map(btService);
+                voronoi = null;
                 redrawMap();
 
                 /* VORO-ROUTE-NOI-THING-STUFF... */
@@ -80,11 +84,11 @@ public class ActivitySecond extends AppCompatActivity {
                             rnd.nextInt(map.getMap().getWidth()),
                             rnd.nextInt(map.getMap().getHeight())));
 
-                Bitmap voronoiBitmap = voronoi.createVoronoi();
+                voronoi.createVoronoi();
                 voronoi.extractVoronoiToGraph();
-                voronoi.drawNodesAndEdges(new Canvas(voronoiBitmap));
+                voronoi.drawNodesAndEdges();
 
-                mapView.setImageBitmap(voronoiBitmap);
+                mapView.setImageBitmap(voronoi.voronoiMap);
 
                 System.out.println("SEARCHING...");
                 int src = rnd.nextInt(voronoi.voronoiGraph.getNodes().size() -1);
@@ -128,51 +132,115 @@ public class ActivitySecond extends AppCompatActivity {
                 if (v.equals(concreteToggle)) {
                     if (concreteToggle.isChecked()) obstacleThreshold.setVisibility(View.VISIBLE);
                     else obstacleThreshold.setVisibility(View.INVISIBLE);
-                    redrawMap();
                 }
                 else if (v.equals(voronoiToggle)) {
-                    // TODO: do something!
-                    if (voronoi == null) voronoi = new Voronoi(map.generateConcreteMap(obstacleThreshold.getProgress()));
-                    if (vCancel == null) {
-                        vCancel = new Button(getApplicationContext());
-                        vCancel.setLayoutParams(connect.getLayoutParams());
-                        vCancel.setText("Cancel");
-                        vCancel.setBackground(connect.getBackground());
-                        vCancel.setTextColor(Color.argb(0xff, 0x12, 0x34, 0x56));
-                        vCancel.setVisibility(View.INVISIBLE);
-                        activityLayout.addView(vCancel);
+                    if (voronoiToggle.isChecked()) {
+                        if (voronoi != null && voronoi.getSites().size() > 0) {
+                            AlertDialog.Builder builder = new AlertDialog.Builder(ActivitySecond.this);
+                            builder.setMessage("Would you like to continue using the latest collection of Sites for this map?");
+                            builder.setNegativeButton("No, thanks. I'd like to start over.",
+                                    new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            voronoi = new Voronoi(map.generateConcreteMap(obstacleThreshold.getProgress()));
+                                            redrawMap();
+                                        }
+                                    });
+                            builder.setPositiveButton("Yes!",
+                                    new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            // ...
+                                        }
+                                    });
+                            AlertDialog dialog = builder.create();
+                            dialog.show();
+                        } else voronoi = new Voronoi(map.generateConcreteMap(obstacleThreshold.getProgress()));
+                    }
+
+                    if (vSiteToggle == null) {
+                        vSiteToggle = new ToggleButton(getApplicationContext());
+                        vSiteToggle.setLayoutParams(connect.getLayoutParams());
+                        vSiteToggle.setText("Sites");
+                        vSiteToggle.setTextOn("Sites");
+                        vSiteToggle.setTextOff("Sites");
+                        vSiteToggle.setBackground(movement.getBackground());
+                        vSiteToggle.setTextColor(Color.argb(0xff, 255, 64, 129));
+                        vSiteToggle.setVisibility(View.INVISIBLE);
+                        vSiteToggle.setChecked(true);
+                        activityLayout.addView(vSiteToggle);
+                        vSiteToggle.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                redrawMap();
+                            }
+                        });
                     }
                     if (vDone == null) {
                         vDone = new Button(getApplicationContext());
                         vDone.setLayoutParams(reset.getLayoutParams());
-                        vDone.setText("Done");
+                        vDone.setText("Draw");
                         vDone.setBackground(reset.getBackground());
-                        vDone.setTextColor(Color.argb(0xff, 0x12, 0x34, 0x56));
+                        vDone.setTextColor(Color.argb(0xff, 255, 64, 129));
                         vDone.setVisibility(View.INVISIBLE);
                         activityLayout.addView(vDone);
+                        vDone.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                ArrayList<Coordinate> sites = voronoi.getSites();
+                                voronoi = new Voronoi(map.generateConcreteMap(obstacleThreshold.getProgress()));
+                                for (Coordinate s : sites) voronoi.addSite(s);
+                                voronoi.createVoronoi();
+                                voronoi.extractVoronoiToGraph();
+                                redrawMap();
+                            }
+                        });
                     }
                     if (vAuto == null) {
-                        vAuto = new Button(getApplicationContext());
+                        vAuto = new ToggleButton(getApplicationContext());
                         vAuto.setLayoutParams(movement.getLayoutParams());
                         vAuto.setText("Auto");
-                        vAuto.setBackground(movement.getBackground());
-                        vAuto.setTextColor(Color.argb(0xff, 0x12, 0x34, 0x56));
+                        vAuto.setTextOn("Auto");
+                        vAuto.setTextOff("Auto");
+                        vAuto.setBackground(reset.getBackground());
+                        vAuto.setTextColor(Color.argb(0xff, 255, 64, 129));
                         vAuto.setVisibility(View.INVISIBLE);
                         activityLayout.addView(vAuto);
+                        vAuto.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                voronoi = new Voronoi(map.generateConcreteMap(obstacleThreshold.getProgress()));
+                                int xInterval = (int)(map.getMap().getWidth() /Math.sqrt(
+                                        Math.pow(CAR_HEIGHT -WHEEL_FRONT_OFFSET -WHEEL_HEIGHT /2 +CUPHOLDER_HEIGHT, 2)+ Math.pow(CAR_WIDTH, 2)) *2);
+                                int yInterval = (int)(map.getMap().getHeight() /Math.sqrt(
+                                        Math.pow(CAR_HEIGHT -WHEEL_FRONT_OFFSET -WHEEL_HEIGHT /2 +CUPHOLDER_HEIGHT, 2)+ Math.pow(CAR_WIDTH, 2)) *2);
+
+                                for (int x = xInterval /2; x < map.getMap().getWidth(); x += xInterval) {
+                                    for (int y = 0; y < map.getMap().getHeight(); y += yInterval)
+                                        voronoi.addSite(new Coordinate(x, y));
+                                    x += xInterval;
+                                    for (int y = yInterval /2; y < map.getMap().getHeight(); y += yInterval)
+                                        voronoi.addSite(new Coordinate(x, y));
+                                }
+                                voronoi.createVoronoi();
+                                voronoi.extractVoronoiToGraph();
+                                redrawMap();
+                            }
+                        });
                     }
 
                     if (voronoiToggle.isChecked()) {
                         vAuto.setVisibility(View.VISIBLE);
                         vDone.setVisibility(View.VISIBLE);
-                        vCancel.setVisibility(View.VISIBLE);
+                        vSiteToggle.setVisibility(View.VISIBLE);
                     }
                     else {
                         vAuto.setVisibility(View.INVISIBLE);
                         vDone.setVisibility(View.INVISIBLE);
-                        vCancel.setVisibility(View.INVISIBLE);
+                        vSiteToggle.setVisibility(View.INVISIBLE);
                     }
                 }
-                else redrawMap();
+                redrawMap();
             }
         };
         shadeToggle.setOnClickListener(mapToggleOCL);
@@ -267,7 +335,10 @@ public class ActivitySecond extends AppCompatActivity {
                         }
                     }
                     else {
-                        voronoi.addSite(new Coordinate(dest.x, dest.y));
+                        if (event.getAction() == MotionEvent.ACTION_UP) {
+                            voronoi.addSite(new Coordinate(dest.x, dest.y));
+                            redrawMap();
+                        }
                     }
                 }
                 return true;
@@ -306,8 +377,8 @@ public class ActivitySecond extends AppCompatActivity {
                 int pos = 0;
                 while (pos < fakeResults.length /3) {
                     fakeResults[pos *3 +0] = (byte)(pos *SERVO_TURN_DEGREES);
-                    fakeResults[pos *3 +1] = (byte)(/*rnd.nextInt(SENSOR_MAX_DISTANCE)*/ SENSOR_MAX_DISTANCE);
-                    fakeResults[pos *3 +2] = (byte)(/*rnd.nextInt(SENSOR_MAX_DISTANCE)*/ SENSOR_MAX_DISTANCE);
+                    fakeResults[pos *3 +1] = (byte)(rnd.nextInt(SENSOR_MAX_DISTANCE));
+                    fakeResults[pos *3 +2] = (byte)(rnd.nextInt(SENSOR_MAX_DISTANCE));
                     pos++;
                 }
                 updateMap(new ScanResult(fakeResults, 0, fakeResults.length));
@@ -384,6 +455,8 @@ public class ActivitySecond extends AppCompatActivity {
 
                 if (routeToggle.isChecked()) c.drawBitmap(map.getRouteOverlay(), 0, 0, null);
                 if (shadeToggle.isChecked()) c.drawBitmap(map.getShadeOverlay(), 0, 0, null);
+                if (voronoiToggle.isChecked()) c.drawBitmap(voronoi.getVoronoiMap(), 0, 0, null);
+                if (voronoiToggle.isChecked() && vSiteToggle.isChecked()) c.drawBitmap(voronoi.getSiteMap(), 0, 0, null);
                 c.drawBitmap(map.getCarOverlay(), 0, 0, null);
 
                 mapView.setImageBitmap(bmp);
@@ -417,19 +490,47 @@ public class ActivitySecond extends AppCompatActivity {
         this.startActivityForResult(intent, 0);
     }
 
+    public void saveMap(View view) {
+        String id = this.saveImage(this, this.map.getMap(), IMG_TYPE_MAP, null);
+        if (this.voronoi != null && this.voronoi.siteMap != null)
+            this.saveImage(this, this.voronoi.exportSiteMap(), IMG_TYPE_SITES, id);
+
+        Toast toast = Toast.makeText(this.getApplicationContext(),
+                "Your map has been saved.", Toast.LENGTH_SHORT);
+        toast.show();
+    }
+
+    private static final int IMG_TYPE_UNKNOWN = 0x00;
+    private static final int IMG_TYPE_MAP = 0x01;
+    private static final int IMG_TYPE_SITES = 0x02;
+
+    public static final String IMG_PREFIX_UNKNOWN = "img_";
+    public static final String IMG_PREFIX_MAP = "map_";
+    public static final String IMG_PREFIX_SITES = "sites_";
+
     //added by Ameera 26/05/2017
-    private String saveImage(Bitmap bitmapImage) {
+    public static String saveImage(Context context, Bitmap bitmapImage, int type, String identifier) {
         // getting a pointer to the map directory
-        ContextWrapper cw = new ContextWrapper(getApplicationContext());
+        ContextWrapper cw = new ContextWrapper(context.getApplicationContext());
         File directory = cw.getDir("maps", Context.MODE_PRIVATE);
 
-        // defining a suitable file name
-        Calendar c = Calendar.getInstance();
-        SimpleDateFormat df = new SimpleDateFormat("dd-MMM-yyyy_H-m-s-S");
-        String formattedDate = df.format(c.getTime());
+        if (identifier == null) {
+            // defining a suitable file name
+            Calendar c = Calendar.getInstance();
+            SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd_H:m:s.S");
+            identifier = df.format(c.getTime());
+        }
+
+        String prefix;
+        switch (type) {
+            case IMG_TYPE_UNKNOWN: prefix = IMG_PREFIX_UNKNOWN; break;
+            case IMG_TYPE_MAP: prefix = IMG_PREFIX_MAP; break;
+            case IMG_TYPE_SITES: prefix = IMG_PREFIX_SITES; break;
+            default: prefix = IMG_PREFIX_UNKNOWN;
+        }
 
         // saving the image
-        File path = new File(directory, "map_" + formattedDate + ".png");
+        File path = new File(directory, prefix +identifier +".png");
         FileOutputStream fos;
         try {
             fos = new FileOutputStream(path);
@@ -439,35 +540,45 @@ public class ActivitySecond extends AppCompatActivity {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return directory.getAbsolutePath();
+        return identifier;
     }
 
-
-    private void loadImage(String fileName) {
+    public static Bitmap loadImage(Context context, String fileName) {
         try {
             // getting a pointer to the map directory
-            ContextWrapper cw = new ContextWrapper(getApplicationContext());
+            ContextWrapper cw = new ContextWrapper(context.getApplicationContext());
             File directory = cw.getDir("maps", Context.MODE_PRIVATE);
             File f = new File(directory, fileName);
 
             // loading the image
-            Bitmap b = BitmapFactory.decodeStream(new FileInputStream(f));
-
-            // TODO: This is where the image should be processed
-            // ImageView img = (ImageView) findViewById(R.id.viewImage);
-            // img.setImageBitmap(b);
+            Bitmap bmp = BitmapFactory.decodeStream(new FileInputStream(f)).copy(Bitmap.Config.ARGB_8888, true);
+            bmp.setConfig(Bitmap.Config.ARGB_4444);
+            return bmp;
 
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
+        return null;
     }
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        if (data != null) {
+            String mapId = data.getExtras().getString("mapIdentifier");
+            boolean loadMap = data.getExtras().getBoolean("loadMap");
+            String siteId = data.getExtras().getString("siteIdentifier");
+            boolean loadSites = data.getExtras().getBoolean("loadSites");
+            if (!loadMap) return;
 
-        Intent intent = getIntent();
-        String filePath = data.getExtras().getString("filePath");
+            Bitmap map = this.loadImage(this, mapId);
+            Bitmap sites = this.loadImage(this, siteId);
 
-        // TODO: load the image (and reinitialize whatever has to be initialized)
+            this.map = new Map(map, this.btService);
+            if (sites != null && loadSites) {
+                this.voronoi = new Voronoi(this.map.getMap());
+                this.voronoi.parseSites(sites);
+            }
+            redrawMap();
+        }
     }
 }

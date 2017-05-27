@@ -31,7 +31,7 @@ public class Node {
     public boolean equals(Object obj) {
         if(obj instanceof Node) {
             Node v = (Node) obj;
-            return this.id() == v.id() || Math.abs(v.x - this.x) <= 0.5f && Math.abs(v.y - this.y) <= 0.5f;
+            return this.id() == v.id() || Math.abs(v.x - this.x) <= 0.5 && Math.abs(v.y - this.y) <= 0.5;
         }else{
             return false;
         }
