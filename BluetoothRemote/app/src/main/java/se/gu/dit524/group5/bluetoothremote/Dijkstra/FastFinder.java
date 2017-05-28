@@ -11,6 +11,11 @@ public class FastFinder {
     /** Fast route finder using Dijkstras algorithm  (see TramFinder.findRoute) **/
     public static Node[] findRoute(Graph nw, Node from, Node to) {
 
+        if(!nw.hasNode(from))
+            nw.addToGraph(from);
+        if(!nw.hasNode(to))
+            nw.addToGraph(to);
+
         // Initialize a new heap to keep track of currently available connections
         // and an array holding information about visited nodes, routes and times.
         Heap availableConnections = new PriorityHeap(nw.getNodes().size());
