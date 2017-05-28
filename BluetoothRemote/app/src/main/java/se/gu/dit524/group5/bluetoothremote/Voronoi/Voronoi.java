@@ -46,7 +46,7 @@ public class Voronoi {
 
     }
 
-    private Coordinate[] getPoylgonVertices(Polygon poly){
+    private Coordinate[] getPolygonVertices(Polygon poly){
         Coordinate[] cs = null;
         try {
             cs = poly.getBoundary().getCoordinates();

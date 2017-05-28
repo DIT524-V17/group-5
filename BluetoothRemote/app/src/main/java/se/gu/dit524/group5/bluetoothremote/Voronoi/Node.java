@@ -1,17 +1,22 @@
 package se.gu.dit524.group5.bluetoothremote.Voronoi;
+import com.vividsolutions.jts.geom.Coordinate;
 
+import java.util.ArrayList;
 import android.graphics.PointF;
-
 import java.util.HashMap;
 
+/**
+ * Created by Vin on 15/05/2017.
+ */
 public class Node {
-    private PointF loc;
-    double x;
-    double y;
-    int id;
-    private HashMap<Node, Edge> neighbours;
 
-    public Node(double x, double y, int id) {
+    private double x;
+    private double y;
+    private int id;
+    private HashMap<Node,Edge> neighbours;
+
+    public Node(double x, double y, int id){
+
         this.x = x;
         this.y = y;
         this.id = id;
@@ -19,8 +24,24 @@ public class Node {
         this.loc = new PointF((float) this.x, (float) this.y);
     }
 
+    @Override
+    public String toString(){
+        return "(x="+this.x+" y="+this.y+")";
+    }
+    @Override
+    public boolean equals(Object obj){
+        if(!(obj instanceof Node))
+            return false;
+        Node n = (Node) obj;
+        return this.id() == n.id() || Math.abs(n.x - this.x) <= 0.5f && Math.abs(n.y - this.y) <= 0.5f;
+    }
+
     public void addNeighbour(Node n, Edge e) {
         this.neighbours.put(n, e);
+    }
+
+    public void removeNeighbour(Node n){
+        this.neighbours.remove(n);
     }
 
     public HashMap<Node, Edge> getNeighbours() {
@@ -31,18 +52,13 @@ public class Node {
         return this.id;
     }
 
-    public PointF getLoc() {
-        return this.loc;
+
+    public double x(){
+        return this.x;
     }
 
-    @Override
-    public boolean equals(Object obj) {
-        if(obj instanceof Node) {
-            Node v = (Node) obj;
-            return this.id() == v.id() || Math.abs(v.x - this.x) <= 0.5 && Math.abs(v.y - this.y) <= 0.5;
-        }else{
-            return false;
-        }
+    public double y(){
+        return this.y;
     }
+
 }
-

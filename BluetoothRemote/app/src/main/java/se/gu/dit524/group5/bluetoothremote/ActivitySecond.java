@@ -67,7 +67,7 @@ public class ActivitySecond extends AppCompatActivity {
         reset.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                lastSteeringDirection = null;
+              /*  lastSteeringDirection = null;
                 map = new Map(btService);
                 voronoi = null;
                 redrawMap();

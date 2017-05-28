@@ -1,32 +1,34 @@
 package se.gu.dit524.group5.bluetoothremote.Voronoi;
+/**
+ * Created by Vin on 15/05/2017.
+ */
 
 public class Edge {
-
-    Node v1;
-    Node v2;
-    int distance;
-    String function;
+    private final Node n1;
+    private final Node n2;
+    private final double distance;
+    final LinearFunction function;
 
     public Edge(Node v1, Node v2, int distance) {
-        this.v1 = v1;
-        this.v2 = v2;
+        this.n1 = v1;
+        this.n2 = v2;
         this.distance = distance;
+        this.function = null;
     }
 
-    public Edge(Node v1, Node v2, LinearFunction func){
-        this.v1 = v1;
-        this.v2 = v2;
-        this.distance = (int)Math.round((Math.sqrt(Math.pow((v2.x - v1.x) ,2) + Math.pow((v2.y - v1.y) , 2))));
-        this.function = func.getLinearFunction(v1, v2);
+    public Edge(Node n1, Node n2, LinearFunction func){
+        this.n1 = n1;
+        this.n2 = n2;
+        this.function = func;
+        this.distance = Math.sqrt(
+                      Math.pow(n1.y()-n2.y(),2)
+                    + Math.pow(n1.x()-n2.x(),2)
+                      );
     }
 
-    /**
-     * @return Edge as string
-     */
     @Override
-    public String toString()
-    {
-        return "Edge From: " + v1.id + " to: " + v2.id + " distance: " + distance;
+    public String toString(){
+        return n1 + "---" + n2;
     }
 
     @Override
@@ -34,26 +36,48 @@ public class Edge {
         if(obj instanceof Edge){
             Edge e = (Edge) obj;
 
-            return (e.v1.equals(this.v1) && e.v2.equals(this.v2)) || e.v1.equals(this.v2) && e.v2.equals(this.v1);
+            return (e.n1.equals(this.n1) && e.n2.equals(this.n2)) || e.n1.equals(this.n2) && e.n2.equals(this.n1);
         } else {
             return false;
         }
     }
 
-    public Node n1() {
-        return this.v1;
+    public boolean hasNode(Node n){
+        return n.equals(this.n1) || n.equals(this.n2);
     }
 
-    public Node n2() {
-        return this.v2;
+    public Node destination(Node n){
+        //@return other end of edge, assuming n is an end of the edge
+        //FIXME: make sure this doesnt return nullpointers
+        return this.n1.equals(n) ? this.n2 : this.n1;
     }
 
-    public Node destination(Node start) {
-        if (!start.equals(v1) && !start.equals(v2)) return null;
-        else return this.v1.equals(start) ? v2 : v1;
+    public Node n1(){
+        return this.n1;
     }
 
-    public int distance() {
+    public Node n2(){
+        return this.n2;
+    }
+
+    public boolean containsPoint(double x, double y){
+        boolean contains = true;
+        contains = contains && ((x<this.n1().x() && x>this.n2().x()) ||
+                                 x>this.n1().x() && x<this.n2().x());
+        contains = contains && ((y<this.n1().y() && y>this.n2().y()) ||
+                                 y>this.n1().y() && y<this.n2().y());
+        return contains;
+
+    }
+
+    public double distance(){
         return distance;
     }
+
+    public double slope(){
+        return this.function.getSlope(this.n1,this.n2);
+    }
+
+    //TODO: bugtest/bugfix the algorithm
+
 }
