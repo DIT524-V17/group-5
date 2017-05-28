@@ -1,3 +1,4 @@
+package se.gu.dit524.group5.bluetoothremote.Voronoi;
 import com.vividsolutions.jts.geom.Coordinate;
 import java.util.ArrayList;
 

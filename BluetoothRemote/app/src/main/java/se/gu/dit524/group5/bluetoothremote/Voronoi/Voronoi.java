@@ -1,4 +1,4 @@
-//package se.gu.dit524.group5.bluetoothremote.Voronoi;
+package se.gu.dit524.group5.bluetoothremote.Voronoi;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;

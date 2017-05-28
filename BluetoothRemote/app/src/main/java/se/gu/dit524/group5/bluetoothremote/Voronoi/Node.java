@@ -1,3 +1,4 @@
+package se.gu.dit524.group5.bluetoothremote.Voronoi;
 import com.vividsolutions.jts.geom.Coordinate;
 
 import java.util.ArrayList;
@@ -33,6 +34,10 @@ public class Node {
 
     public void addNeighbour(Node n, Edge e) {
         this.neighbours.put(n, e);
+    }
+
+    public void removeNeighbour(Node n){
+        this.neighbours.remove(n);
     }
 
     public HashMap<Node, Edge> getNeighbours() {

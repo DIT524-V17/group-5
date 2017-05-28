@@ -1,3 +1,4 @@
+package se.gu.dit524.group5.bluetoothremote.Voronoi;
 /**
  * Created by Vin on 15/05/2017.
  */
@@ -7,6 +8,13 @@ public class Edge {
     private final Node n2;
     private final double distance;
     final LinearFunction function;
+
+    public Edge(Node v1, Node v2, int distance) {
+        this.n1 = v1;
+        this.n2 = v2;
+        this.distance = distance;
+        this.function = null;
+    }
 
     public Edge(Node n1, Node n2, LinearFunction func){
         this.n1 = n1;

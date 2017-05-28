@@ -42,17 +42,6 @@
         android:layout_alignTop="@+id/angleBar"
         android:layout_centerHorizontal="true" />
 
-    <SeekBar
-        android:id="@+id/angleBar"
-        android:layout_width="200dp"
-        android:layout_height="200dp"
-        android:max="180"
-        android:progress="90"
-        android:layout_above="@+id/shadeToggle"
-        android:layout_alignStart="@+id/throttleBar"
-        tools:layout_editor_absoluteY="0dp"
-        tools:layout_editor_absoluteX="0dp" />
-
     <Button
         android:id="@+id/scanButton"
         android:layout_width="wrap_content"
@@ -146,5 +135,16 @@
         android:layout_alignStart="@+id/mapView"
         android:visibility="invisible"
         android:onClick="saveMap"/>
+
+    <SeekBar
+        android:id="@+id/angleBar"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:max="180"
+        android:progress="90"
+        tools:layout_editor_absoluteY="0dp"
+        tools:layout_editor_absoluteX="0dp"
+        android:layout_above="@+id/shadeToggle"
+        android:layout_alignLeft="@+id/throttleBar" />
 
 </RelativeLayout>

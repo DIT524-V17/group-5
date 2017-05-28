@@ -23,14 +23,14 @@ public class PriorityConnection implements Comparable<PriorityConnection> {
     }
 
     public int weight() {
-        return this.edge.distance() +this.additionalWeight;
+        return (int) this.edge.distance() + this.additionalWeight;
     }
 
     // Compare the total "weight" of this edge (the time it takes to use this path)
     // with the weight of another edge - return their difference.
     @Override
     public int compareTo(PriorityConnection o) {
-        return (this.edge.distance() +this.additionalWeight)
-                -(o.edge.distance() +o.additionalWeight);
+        return (int) ((this.edge.distance() +this.additionalWeight)
+                        -(o.edge.distance() +o.additionalWeight));
     }
 }

@@ -1,3 +1,4 @@
+package se.gu.dit524.group5.bluetoothremote.Voronoi;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -63,22 +64,17 @@ public class Graph {
         return null;
     }
 
-    protected boolean hasNode(Node n){
+    public boolean hasNode(Node n){
         return this.nodes.contains(n);
     }
 
     public void addToGraph(Node n){
-        //TODO:find nearest edge
-        //get slope of edge
-        //get slope of connection
-        //get intersection
-        //cut at node and intersection
         List<Edge> edges = this.edges;
         List<Edge> newEdges = new ArrayList<>();
         List<Edge> connectedEdges = new ArrayList<>();
         LinearFunction f = this.linFunc;
 
-        for(Edge edge : edges){                     //collects edges, perpendicular to every edge already added
+        for(Edge edge : edges){          //collects edges, perpendicular to every edge already added
             //and stemming from n
             //get slope for the perpendicular line
             double a = -(1 / edge.slope());
@@ -139,30 +135,61 @@ public class Graph {
         //check if shortest.n1 lies on closest
         Edge e1 = closest;
         Edge e2 = new Edge(closest.n2(),shortest.n1(),f);
-        if(closest.containsPoint(shortest.n1().x(),shortest.n1().y())){
-            e1 = new Edge(closest.n1(),shortest.n1(),f);
-            e2 = new Edge(shortest.n1(),closest.n2(),f);
-        }
-        else if(shortest.n1().x()>closest.n1().x()){
-            e1 = closest;
-            e2 = new Edge(closest.n1(),shortest.n1(),f);
-        }
 
-        if(this.edges.remove(closest)){
-            System.out.println("removes");
+        if(closest.containsPoint(shortest.n1().x(),shortest.n1().y())) { //intersection on closest
+            //break apart edge
+            closest.n1().removeNeighbour(closest.n2());
+            closest.n2().removeNeighbour(closest.n1());
+
+            e1 = new Edge(closest.n1(), shortest.n1(), f);
+            closest.n1().addNeighbour(shortest.n1(), e1);
+            shortest.n1().addNeighbour(closest.n1(), e1);
+
+            e2 = new Edge(shortest.n1(), closest.n2(), f);
+            closest.n2().addNeighbour(shortest.n1(), e2);
+            shortest.n1().addNeighbour(closest.n2(), e2);
+
+            shortest.n1().addNeighbour(shortest.n2(), shortest);
+            shortest.n2().addNeighbour(shortest.n1(), shortest);
+
             this.edges.add(e1);
             this.edges.add(e2);
             this.edges.add(shortest);
             this.nodes.add(n);
             this.nodes.add(shortest.n1());
-        }
 
+        }
+        else if(shortest.n1().x()>closest.n1().x()){ //intersection on n1 side of closest
+            e1 = new Edge(closest.n1(),shortest.n1(),f);
+            closest.n1().addNeighbour(shortest.n1(),e1);
+            shortest.n1().addNeighbour(closest.n1(),e1);
+
+            shortest.n1().addNeighbour(shortest.n2(), shortest);
+            shortest.n2().addNeighbour(shortest.n1(), shortest);
+
+            this.edges.add(e1);
+            this.edges.add(shortest);
+            this.nodes.add(shortest.n1());
+            this.nodes.add(n);
+        }
+        else{   //intersection on n2 side of closest
+            e1 = new Edge(closest.n2(),shortest.n1(),f);
+            closest.n2().addNeighbour(shortest.n1(),e1);
+            shortest.n1().addNeighbour(closest.n2(),e1);
+
+            shortest.n1().addNeighbour(shortest.n2(), shortest);
+            shortest.n2().addNeighbour(shortest.n1(), shortest);
+
+            this.edges.add(e1);
+            this.edges.add(shortest);
+            this.nodes.add(shortest.n1());
+            this.nodes.add(n);
+        }
 
     }
 
-    private int intersectAdd(Edge e){
-        return edges.indexOf(e);
-
+    public List<Node> getNodes(){
+        return this.nodes;
     }
 }
 

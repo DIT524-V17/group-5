@@ -50,12 +50,12 @@ public class ActivitySecond extends AppCompatActivity {
         reset.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                lastSteeringDirection = null;
+              /*  lastSteeringDirection = null;
                 map = new Map(btService);
-                redrawMap();
+                redrawMap();*/
 
-                /* VORO-ROUTE-NOI-THING-STUFF...
-                 *
+                 //VORO-ROUTE-NOI-THING-STUFF...
+
                 System.out.println("GENERATING...");
                 Voronoi voronoi = new Voronoi(SENSOR_MAX_DISTANCE *20, SENSOR_MAX_DISTANCE *20);
                 Random rnd = new Random();
@@ -85,7 +85,7 @@ public class ActivitySecond extends AppCompatActivity {
                     else System.out.println("FROM " +route[i -1].id() +" TO " +route[i].id());
                     if (i == route.length -1 && route[i].id() == dst)
                         System.out.println("YOU'VE REACHED YOUR DESTINATION.");
-                } */
+                }
             }
         });
 
