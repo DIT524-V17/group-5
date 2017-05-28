@@ -6,8 +6,8 @@ import java.util.List;
  * Created by Vin on 15/05/2017.
  */
 public class Graph {
-    protected List<Edge> edges;
-    protected List<Node> nodes;
+    protected ArrayList<Node> nodes;
+    protected ArrayList<Edge> edges;
     protected LinearFunction linFunc;
 
     public Graph(LinearFunction linearFunction){

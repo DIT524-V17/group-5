@@ -2,22 +2,26 @@ package se.gu.dit524.group5.bluetoothremote.Voronoi;
 import com.vividsolutions.jts.geom.Coordinate;
 
 import java.util.ArrayList;
+import android.graphics.PointF;
 import java.util.HashMap;
 
 /**
  * Created by Vin on 15/05/2017.
  */
 public class Node {
+
     private double x;
     private double y;
     private int id;
     private HashMap<Node,Edge> neighbours;
 
     public Node(double x, double y, int id){
+
         this.x = x;
         this.y = y;
         this.id = id;
         this.neighbours = new HashMap<>();
+        this.loc = new PointF((float) this.x, (float) this.y);
     }
 
     @Override
@@ -47,6 +51,7 @@ public class Node {
     public int id() {
         return this.id;
     }
+
 
     public double x(){
         return this.x;

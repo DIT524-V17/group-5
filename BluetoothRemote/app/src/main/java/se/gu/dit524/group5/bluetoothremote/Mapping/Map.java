@@ -1,18 +1,28 @@
 package se.gu.dit524.group5.bluetoothremote.Mapping;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Path;
+import android.graphics.Point;
 import android.graphics.PointF;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
+import android.support.annotation.Nullable;
+import android.widget.Toast;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Random;
 
 import se.gu.dit524.group5.bluetoothremote.BluetoothService;
+import se.gu.dit524.group5.bluetoothremote.Dijkstra.FastFinder;
 import se.gu.dit524.group5.bluetoothremote.Instruction;
 import se.gu.dit524.group5.bluetoothremote.ScanResult;
+import se.gu.dit524.group5.bluetoothremote.Voronoi.Graph;
+import se.gu.dit524.group5.bluetoothremote.Voronoi.Node;
 
 import static se.gu.dit524.group5.bluetoothremote.Mapping.Constants.*;
 
@@ -23,9 +33,12 @@ import static se.gu.dit524.group5.bluetoothremote.Mapping.Constants.*;
 
 public class Map {
     private BluetoothService btInterface;
-    public ArrayList<ScanResult> sensorReadings;
+    private ArrayList<ScanResult> sensorReadings;
     private MapParser mapParser;
-    private Bitmap map, carOverlay, shadeOverlay, routeOverlay;
+    private Bitmap rawMap, concreteMap, carOverlay, shadeOverlay, routeOverlay, instructionOverlay;
+    private int lastConcreteObstacleThreshold;
+
+    public boolean processingSteeringInstructions, steeringCallbackReceived;
 
     private Car car = new Car(SENSOR_MAX_DISTANCE, SENSOR_MAX_DISTANCE, 0);
     private Car lastCar = new Car(this.car);
@@ -43,14 +56,38 @@ public class Map {
         this(width, height, null);
     }
 
+    public Map(Bitmap map, BluetoothService btInterface) {
+        this.btInterface = btInterface;
+        this.sensorReadings = new ArrayList<>();
+
+        this.rawMap = map;
+        for (int x = 0; x < this.rawMap.getWidth(); x++)
+            for (int y = 0; y < this.rawMap.getHeight(); y++)
+                if (this.rawMap.getPixel(x, y) == Color.argb(0xFF, 0x71, 0xB9, 0x60)) {
+                    this.rawMap.setPixel(x, y, Color.WHITE);
+                    this.car = new Car(x, y, 0);
+                    this.lastCar = new Car(this.car);
+                    this.lastScanCar = new Car(this.car);
+                    break;
+                }
+
+        this.carOverlay = Bitmap.createBitmap(this.rawMap.getWidth(), this.rawMap.getHeight(), Bitmap.Config.ARGB_4444);
+        this.shadeOverlay = Bitmap.createBitmap(this.rawMap.getWidth(), this.rawMap.getHeight(), Bitmap.Config.ARGB_4444);
+        this.routeOverlay = Bitmap.createBitmap(this.rawMap.getWidth(), this.rawMap.getHeight(), Bitmap.Config.ARGB_4444);
+        this.instructionOverlay = Bitmap.createBitmap(this.rawMap.getWidth(), this.rawMap.getHeight(), Bitmap.Config.ARGB_4444);
+
+        this.drawCar();
+    }
+
     public Map(int width, int height, BluetoothService btInterface) {
         this.btInterface = btInterface;
         this.sensorReadings = new ArrayList<>();
 
-        this.map = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_4444);
-        this.carOverlay = Bitmap.createBitmap(this.map.getWidth(), this.map.getHeight(), Bitmap.Config.ARGB_4444);
-        this.shadeOverlay = Bitmap.createBitmap(this.map.getWidth(), this.map.getHeight(), Bitmap.Config.ARGB_4444);
-        this.routeOverlay = Bitmap.createBitmap(this.map.getWidth(), this.map.getHeight(), Bitmap.Config.ARGB_4444);
+        this.rawMap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_4444);
+        this.carOverlay = Bitmap.createBitmap(this.rawMap.getWidth(), this.rawMap.getHeight(), Bitmap.Config.ARGB_4444);
+        this.shadeOverlay = Bitmap.createBitmap(this.rawMap.getWidth(), this.rawMap.getHeight(), Bitmap.Config.ARGB_4444);
+        this.routeOverlay = Bitmap.createBitmap(this.rawMap.getWidth(), this.rawMap.getHeight(), Bitmap.Config.ARGB_4444);
+        this.instructionOverlay = Bitmap.createBitmap(this.rawMap.getWidth(), this.rawMap.getHeight(), Bitmap.Config.ARGB_4444);
 
         this.drawCar();
     }
@@ -59,22 +96,35 @@ public class Map {
         this.btInterface = btInterface;
     }
 
-    private void processMeasurement(ScanResult.SingleScan scan, Canvas canvas, Car car) {
-        this.resize();
+    public ArrayList<Point> getObstacleCenters() {
+        if (this.sensorReadings == null || this.sensorReadings.size() == 0) return null;
+        else {
+            ArrayList<Point> obstacleCenters = new ArrayList<>();
+            for (ScanResult scanResult : this.sensorReadings)
+                for (ScanResult.SingleScan scan : scanResult.scans())
+                    obstacleCenters.addAll(this.processMeasurementToList(scan, null, scanResult.car()));
 
+            return obstacleCenters;
+        }
+    }
+
+    private ArrayList<Point> processMeasurementToList(ScanResult.SingleScan scan, @Nullable Canvas canvas, Car car) {
+        this.mapParser = new MapParser(canvas, car);
+        return this.mapParser.parseToList(scan.getDistanceA(), scan.getDistanceB(), scan.getAngle());
+    }
+
+    private void processMeasurement(ScanResult.SingleScan scan, Canvas canvas, Car car) {
         this.mapParser = new MapParser(canvas, car);
         this.mapParser.parse(scan.getDistanceA(), scan.getDistanceB(), scan.getAngle());
     }
 
     private void removeCollidingObstacles(ScanResult.SingleScan scan, Canvas canvas, Car car) {
-        this.resize();
-
         this.mapParser = new MapParser(canvas, car);
         this.mapParser.clean(scan.getDistanceA(), scan.getDistanceB(), scan.getAngle());
     }
 
     public Bitmap getMap(){
-        return this.map;
+        return this.rawMap;
     }
 
     public Bitmap getCarOverlay() {
@@ -89,9 +139,29 @@ public class Map {
         return this.routeOverlay;
     }
 
+    public Bitmap getInstructionOverlay() {
+        return this.instructionOverlay;
+    }
+
+    public Bitmap exportMap() {
+        Bitmap bmp = this.rawMap.copy(Bitmap.Config.ARGB_8888, true);
+
+        Paint p = new Paint();
+        p.setAntiAlias(false);
+        p.setStyle(Paint.Style.FILL_AND_STROKE);
+        p.setStrokeWidth(1.0f);
+        p.setColor(Color.argb(0xFF, 0x71, 0xB9, 0x60));
+
+        Canvas c = new Canvas(bmp);
+        c.drawPoint(this.car.center().x, this.car.center().y, p);
+
+        bmp.setConfig(Bitmap.Config.ARGB_4444);
+        return bmp;
+    }
+
     public void resize() {
-        float addR = this.car.servo().x +SENSOR_MAX_DISTANCE +SERVO_OFFSET -this.map.getWidth();
-        float addB = this.car.servo().y +SENSOR_MAX_DISTANCE +SERVO_OFFSET -this.map.getHeight();
+        float addR = this.car.servo().x +SENSOR_MAX_DISTANCE +SERVO_OFFSET -this.rawMap.getWidth();
+        float addB = this.car.servo().y +SENSOR_MAX_DISTANCE +SERVO_OFFSET -this.rawMap.getHeight();
         float addL = -(this.car.servo().x -SENSOR_MAX_DISTANCE -SERVO_OFFSET);
         float addT = -(this.car.servo().y -SENSOR_MAX_DISTANCE -SERVO_OFFSET);
 
@@ -101,12 +171,13 @@ public class Map {
             if (addB < 0) addB = 0;
             if (addL < 0) addL = 0;
             if (addT < 0) addT = 0;
+            this.concreteMap = null;
         }
 
         for (int i = 0; i < 4; i++) {
             Bitmap bmp;
             switch (i) {
-                case 0: bmp = this.map; break;
+                case 0: bmp = this.rawMap; break;
                 case 1: bmp = this.carOverlay; break;
                 case 2: bmp = this.shadeOverlay; break;
                 case 3: bmp = this.routeOverlay; break;
@@ -131,7 +202,7 @@ public class Map {
                     bmp.getHeight());
 
             switch (i) {
-                case 0: this.map = combined; break;
+                case 0: this.rawMap = combined; break;
                 case 1: this.carOverlay = combined; break;
                 case 2: this.shadeOverlay = combined; break;
                 case 3: this.routeOverlay = combined; break;
@@ -177,12 +248,77 @@ public class Map {
         this.car = new Car(c.center().x, c.center().y, c.front());
     }
 
+    public boolean updateCarPosition(final Context ctx, Graph nw, PointF src, PointF dst) {
+        if (this.processingSteeringInstructions) return false;
+        Random rnd = new Random();
+        /* TODO: translate the Car's current position into a node here */
+        Node source = nw.getNodes().get(rnd.nextInt(nw.getNodes().size()));
+        /* TODO: translate the targeted coordinates into a node here */
+        Node destination = nw.getNodes().get(rnd.nextInt(nw.getNodes().size()));
+
+        final Node[] route =  FastFinder.findRoute(nw, source, destination);
+        if (route == null) Toast.makeText(ctx, "Sorry, we couldn't find a route to that place!", Toast.LENGTH_LONG).show();
+        else {
+            this.processingSteeringInstructions = true;
+            final int[] directions = new int[route.length *2];
+            PointF[] stops = new PointF[route.length];
+            int pos = 0;
+            do {
+                int[] next = this.car.findPath(route[pos].getLoc(),
+                        this.rawMap.getWidth(), this.rawMap.getHeight());
+
+                directions[pos *2] = next[0];
+                directions[pos *2 +1] = next[1];
+                stops[pos] = route[pos].getLoc();
+
+            } while (++pos < route.length);
+            this.visualizeRoute(stops);
+
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    for (int i = 0; i < route.length; i++) {
+                        if (btInterface != null) {
+                            if (btInterface.busy()) {
+                                Toast.makeText(ctx, "Processing your request...", Toast.LENGTH_LONG).show(); break; }
+
+                            steeringCallbackReceived = false;
+
+                            byte deg = (byte)((Math.abs(directions[i *2]) &0x7F) |(directions[i *2] > 0 ? 0b10000000 : 0x00));
+                            byte cm  = (byte)((Math.abs(directions[i *2 +1]) &0x7F) |(directions[i *2 +1] < 0 ? 0b10000000 : 0x00));
+
+                            btInterface.send(new Instruction(new byte[]{ 0x31, deg }, 3, BluetoothService.AWAITING_STEERING_CALLBACK), true);
+                            btInterface.send(new Instruction(new byte[]{ 0x41, cm }, 2, BluetoothService.AWAITING_STEERING_CALLBACK), true);
+
+                            while (!steeringCallbackReceived) try { Thread.sleep(500); }
+                            catch (InterruptedException e) { e.printStackTrace(); }
+                        }
+
+                        setLastCar(getCar());
+                        car.rotate(directions[i *2]);
+                        drawCar();
+
+                        setLastCar(getCar());
+                        car.move(directions[i *2 +1]);
+                        drawCar();
+                    }
+                    processingSteeringInstructions = false;
+                    Toast.makeText(ctx, "MARBLE has reached it's destination.", Toast.LENGTH_SHORT).show();
+                }
+            });
+            return true;
+        }
+        return false;
+    }
+
     public boolean updateCarPosition(float x, float y, boolean move, boolean draw) {
         if (move) {
-            int[] directions = this.car.findPath(new PointF(this.car.center().x +x, this.car.center().y +y),
-                    (float) (Math.sqrt(Math.pow(this.map.getWidth() /2, 2) + Math.pow(this.map.getHeight() /2, 2))));
+            if (this.processingSteeringInstructions) return false;
+            PointF dest = new PointF(this.car.center().x +x, this.car.center().y +y);
+            int[] directions = this.car.findPath(dest, this.rawMap.getWidth(), this.rawMap.getHeight());
 
             if (directions[0] != 0 || directions[1] != 0) {
+                this.visualizeRoute(new PointF[]{ dest });
                 if (btInterface != null) {
                     if (btInterface.busy()) return false;
 
@@ -208,76 +344,76 @@ public class Map {
         return false;
     }
 
+    private void visualizeRoute(PointF[] stops) {
+        this.instructionOverlay = Bitmap.createBitmap(
+                this.rawMap.getWidth(), this.rawMap.getHeight(), Bitmap.Config.ARGB_4444);
+
+        Path path = new Path();
+        path.moveTo(this.car.center().x, this.car.center().y);
+        for (PointF stop : stops) path.lineTo(stop.x, stop.y);
+
+        Paint paint = new Paint();
+        paint.setAntiAlias(true);
+        paint.setStrokeWidth(2.0f);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setColor(Color.argb(0xff, 0xff, 0xa4, 0x00));
+
+        Canvas canvas = new Canvas(this.instructionOverlay);
+        canvas.drawPath(path, paint);
+
+        // TODO: invoke some redrawMap-Callback
+    }
+
     public void processScanResult(ScanResult scanResult) {
-        /*
-        scanResult.car = this.map.getCar();
-        this.map.setLastScanCar(this.map.getCar());
+        this.processScanResult(scanResult, true);
+    }
 
-        for (ScanResult.SingleScan scan : scanResult.scans) this.map.processMeasurement(scan, <YOUR CANVAS HERE>, scanResult.car);
+    private ArrayList<Point> processScanResult(ScanResult scanResult, boolean draw) {
+        Canvas outCanvas = null, poiCanvas = null, mapCanvas = null;
+        Bitmap out = null, poi = null;
+        ArrayList<Point> obstacleCenters = new ArrayList<>();
 
-        previousReadings.add(scanResult);
-        this.map.setCar(this.map.getLastScanCar());
-
-        for (ScanResult prevScan : previousReadings) {
-            for (ScanResult.SingleScan scan : prevScan.scans)
-                this.map.removeCollidingObstacles(scan, <YOUR CANVAS HERE>, prevScan.car);
-        }
-
-        redrawMap(); */
-
-        this.resize();
-        if (scanResult.car() == null) {
-            scanResult.setCar(this.car);
-            this.setLastScanCar(this.car);
-        }
-        this.sensorReadings.add(scanResult);
-
-        Bitmap out = Bitmap.createBitmap(this.map.getWidth(), this.map.getHeight(), Bitmap.Config.ARGB_4444);
-        Bitmap poi = Bitmap.createBitmap(this.map.getWidth(), this.map.getHeight(), Bitmap.Config.ARGB_4444);
-
-        Canvas outCanvas = new Canvas(out);
-        Canvas poiCanvas = new Canvas(poi);
-        Canvas mapCanvas = new Canvas(this.map);
-
-        for (ScanResult.SingleScan scan : scanResult.scans()) this.processMeasurement(scan, outCanvas, scanResult.car());
-        for (ScanResult prevResult : this.sensorReadings) {
-            if (Math.abs(scanResult.car().servo().x -prevResult.car().servo().x) <= SENSOR_MAX_DISTANCE ||
-                    Math.abs(scanResult.car().servo().y -prevResult.car().servo().y) <= SENSOR_MAX_DISTANCE) {
-                for (ScanResult.SingleScan scan : prevResult.scans())
-                    this.removeCollidingObstacles(scan, outCanvas, prevResult.car());
+        if (draw) {
+            this.resize();
+            this.concreteMap = null;
+            if (scanResult.car() == null) {
+                scanResult.setCar(this.car);
+                this.setLastScanCar(this.car);
             }
+            this.sensorReadings.add(scanResult);
+
+            out = Bitmap.createBitmap(this.rawMap.getWidth(), this.rawMap.getHeight(), Bitmap.Config.ARGB_4444);
+            poi = Bitmap.createBitmap(this.rawMap.getWidth(), this.rawMap.getHeight(), Bitmap.Config.ARGB_4444);
+
+            outCanvas = new Canvas(out);
+            poiCanvas = new Canvas(poi);
+            mapCanvas = new Canvas(this.rawMap);
         }
 
-        Paint p = new Paint();
-        p.setAntiAlias(true);
-        //p.setColor(Color.WHITE);
-        poiCanvas.drawCircle(scanResult.car().servo().x -0.5f, scanResult.car().servo().y +0.5f, SENSOR_MAX_DISTANCE +1.0f, p);
 
-        p.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.MULTIPLY));
-        outCanvas.drawBitmap(poi, 0, 0, p);
+        if (draw) {
+            for (ScanResult.SingleScan scan : scanResult.scans()) this.processMeasurement(scan, outCanvas, scanResult.car());
+            for (ScanResult prevResult : this.sensorReadings) {
+                if (Math.abs(scanResult.car().servo().x - prevResult.car().servo().x) <= SENSOR_MAX_DISTANCE ||
+                        Math.abs(scanResult.car().servo().y - prevResult.car().servo().y) <= SENSOR_MAX_DISTANCE) {
+                    for (ScanResult.SingleScan scan : prevResult.scans())
+                        this.removeCollidingObstacles(scan, outCanvas, prevResult.car());
+                }
+            }
 
-        p.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.OVERLAY));
-        mapCanvas.drawBitmap(out, 0, 0, p);
+            Paint p = new Paint();
+            p.setAntiAlias(true);
+            p.setColor(Color.WHITE);
+            poiCanvas.drawCircle(scanResult.car().servo().x -0.5f, scanResult.car().servo().y +0.5f, SENSOR_MAX_DISTANCE +1.0f, p);
 
-        // DBG
-        /*
-        p.setColor(Color.argb(0x40, 0xff, 0x00, 0x00));
-        p.setStyle(Paint.Style.FILL_AND_STROKE);
-        p.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DST_OVER));
-        Canvas shadeCanvas = new Canvas(this.shadeOverlay);
-        shadeCanvas.drawCircle(scanResult.car().servo().x, scanResult.car().servo().y, SENSOR_MAX_DISTANCE, p); */
+            p.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.MULTIPLY));
+            outCanvas.drawBitmap(poi, 0, 0, p);
+            mapCanvas.drawBitmap(out, 0, 0, null);
+        }
+        else for (ScanResult.SingleScan scan : scanResult.scans())
+            obstacleCenters.addAll(this.processMeasurementToList(scan, outCanvas, scanResult.car()));
 
-        /*   Source: Square // Destination: Circle
-         *
-             Paint paint = new Paint();
-             canvas.drawBitmap(destinationImage, 0, 0, paint);
-
-             PorterDuff.Mode mode = // choose a mode
-             paint.setXfermode(new PorterDuffXfermode(mode));
-
-             canvas.drawBitmap(sourceImage, 0, 0, paint);
-         *
-         */
+        return draw ? null : obstacleCenters;
     }
 
     public Car getLastScanCar() {
@@ -302,5 +438,19 @@ public class Map {
 
     public void updateLastCarPosition(float x, float y) {
         this.lastCar.alterPosition(x, y);
+    }
+
+    public Bitmap generateConcreteMap(int obstacleThreshold) {
+        if (this.concreteMap != null && obstacleThreshold == this.lastConcreteObstacleThreshold) return this.concreteMap;
+        this.concreteMap = Bitmap.createBitmap(this.rawMap.getWidth(), this.rawMap.getHeight(), Bitmap.Config.ARGB_4444);
+        for (int i = 0; i < this.rawMap.getWidth(); i++) {
+            for (int j = 0; j < this.rawMap.getHeight(); j++) {
+                if ((this.rawMap.getPixel(i, j) &0xff) <= obstacleThreshold)
+                    this.concreteMap.setPixel(i, j, Color.BLACK);
+                else this.concreteMap.setPixel(i, j, Color.WHITE);
+            }
+        }
+        this.lastConcreteObstacleThreshold = obstacleThreshold;
+        return this.concreteMap;
     }
 }

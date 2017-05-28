@@ -11,8 +11,8 @@
 
     <ImageView
         android:id="@+id/mapView"
-        android:layout_width="350dp"
-        android:layout_height="350dp"
+        android:layout_width="320dp"
+        android:layout_height="320dp"
         android:layout_alignParentBottom="false"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="24dp"
@@ -120,7 +120,7 @@
         android:id="@+id/listOfMaps"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="LIST OF MAPS"
+        android:text="LOAD MAP"
         android:layout_alignParentTop="true"
         android:layout_alignEnd="@+id/mapView"
         android:visibility="invisible"
@@ -136,15 +136,37 @@
         android:visibility="invisible"
         android:onClick="saveMap"/>
 
+    <ToggleButton
+        android:id="@+id/concreteMapToggle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/connectButton"
+        android:layout_alignParentEnd="true"
+        android:visibility="invisible"
+        android:textOff="OBS%"
+        android:textOn="OBS%" />
+
     <SeekBar
-        android:id="@+id/angleBar"
-        android:layout_width="200dp"
-        android:layout_height="200dp"
-        android:max="180"
-        android:progress="90"
-        tools:layout_editor_absoluteY="0dp"
-        tools:layout_editor_absoluteX="0dp"
-        android:layout_above="@+id/shadeToggle"
-        android:layout_alignLeft="@+id/throttleBar" />
+        android:id="@+id/obsThreshold"
+        style="@style/Widget.AppCompat.SeekBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/concreteMapToggle"
+        android:layout_alignParentEnd="true"
+        android:layout_alignStart="@+id/voronoiInputToggle"
+        android:layout_alignEnd="@+id/concreteMapToggle"
+        android:visibility="invisible"
+        android:max="255"
+        android:progress="192" />
+
+    <ToggleButton
+        android:id="@+id/voronoiInputToggle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignEnd="@+id/resetButton"
+        android:layout_above="@+id/resetButton"
+        android:textOff="Voronoi"
+        android:textOn="Voronoi"
+        android:visibility="invisible" />
 
 </RelativeLayout>
