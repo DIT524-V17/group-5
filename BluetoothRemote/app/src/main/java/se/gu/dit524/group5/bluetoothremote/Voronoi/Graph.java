@@ -26,7 +26,7 @@ public class Graph {
         if(n1.equals(n2) || ((n1.x() == 0.0 && n1.y() == 0.0) && (n2.x() == 0.0 && n2.y() == 0)))
             return null;
         Edge temp = findEdge(new Edge(n1,n2,linFunc));
-        if (temp != null){
+        if (temp == null){
             Edge e = new Edge(n1,n2,linFunc);
             this.edges.add(e);
             return e;
@@ -38,7 +38,7 @@ public class Graph {
         if(e.n1().equals(e.n2()) || ((e.n1().x() == 0.0 && e.n1().y() == 0.0) && (e.n2().x() == 0.0 && e.n2().y() == 0)))
             return null;
         Edge temp = findEdge(new Edge(e.n1(), e.n2(),linFunc));
-        if (temp != null){
+        if (temp == null){
             Edge edge = new Edge(e.n1(), e.n2(),linFunc);
             this.edges.add(edge);
             return edge;

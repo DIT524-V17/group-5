@@ -35,7 +35,7 @@ public class Main {
         g.addEdge(new Edge(g.nodes.get(5),g.nodes.get(6),g.linFunc));
 
         //ACTUAL dijkstra calculation
-        DijkstraAlgorithm dijkstra = new DijkstraAlgorithm(graph);
+        DijkstraAlgorithm dijkstra = new DijkstraAlgorithm(g);
         dijkstra.execute(g.nodes.get(3));
         LinkedList<Node> path = dijkstra.getPath(g.nodes.get(1));
 

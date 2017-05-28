@@ -41,7 +41,7 @@ public class Voronoi {
         this.nodeCounter = 0;
     }
 
-    private Coordinate[] getPoylgonVertices(Polygon poly){
+    private Coordinate[] getPolygonVertices(Polygon poly){
         Coordinate[] cs = null;
         try {
             cs = poly.getBoundary().getCoordinates();
@@ -72,7 +72,7 @@ public class Voronoi {
         for(Polygon poly: this.polygons) {
             ArrayList tempIntCoords = new ArrayList();
             ArrayList tempIntCoords2 = new ArrayList();
-            Coordinate[] cs = getPoylgonVertices(poly);
+            Coordinate[] cs = getPolygonVertices(poly);
             for (Coordinate coor : cs) {
                 tempIntCoords.add((int) Math.round(coor.x));
                 tempIntCoords2.add((int) Math.round(coor.y));
@@ -118,7 +118,7 @@ public class Voronoi {
     public void extractVoronoiToGraph(){
 
         for(Polygon poly : this.polygons) {
-            Coordinate[] cs = getPoylgonVertices(poly);
+            Coordinate[] cs = getPolygonVertices(poly);
             for (int i = 0; i < cs.length; i++) {
                 int j = i + 1;
                 if (j < cs.length) {
