@@ -348,6 +348,10 @@ public class ActivitySecond extends AppCompatActivity {
                         if (event.getAction() == MotionEvent.ACTION_UP) {
                             targetView.setVisibility(View.INVISIBLE);
                             if (voronoi != null && voronoi.voronoiGraph != null && voronoi.voronoiGraph.getNodes().size() > 0) {
+                                try {
+                                    map.mainActivity = ActivitySecond.this;
+                                    map.drawCallback = ActivitySecond.this.getClass().getMethod("redrawMap", new Class[]{ });
+                                } catch (NoSuchMethodException e) { e.printStackTrace(); }
                                 map.updateCarPosition(getApplicationContext(), voronoi.voronoiGraph, map.getCar().center(), dest);
                             }
                             else {
@@ -481,7 +485,7 @@ public class ActivitySecond extends AppCompatActivity {
                 if (shadeToggle.isChecked()) c.drawBitmap(map.getShadeOverlay(), 0, 0, null);
                 if (voronoiToggle.isChecked()) c.drawBitmap(voronoi.getVoronoiMap(), 0, 0, null);
                 if (voronoiToggle.isChecked() && vSiteToggle.isChecked()) c.drawBitmap(voronoi.getSiteMap(), 0, 0, null);
-                if (map.processingSteeringInstructions) c.drawBitmap(map.getInstructionOverlay(), 0, 0, null);
+                c.drawBitmap(map.getInstructionOverlay(), 0, 0, null);
                 c.drawBitmap(map.getCarOverlay(), 0, 0, null);
 
                 mapView.setImageBitmap(bmp);

@@ -10,10 +10,13 @@ import android.graphics.Point;
 import android.graphics.PointF;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
+import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.widget.Toast;
 
 import java.lang.reflect.Array;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -32,6 +35,9 @@ import static se.gu.dit524.group5.bluetoothremote.Mapping.Constants.*;
  */
 
 public class Map {
+    public Object mainActivity;
+    public Method drawCallback;
+
     private BluetoothService btInterface;
     private ArrayList<ScanResult> sensorReadings;
     private MapParser mapParser;
@@ -174,13 +180,14 @@ public class Map {
             this.concreteMap = null;
         }
 
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < 5; i++) {
             Bitmap bmp;
             switch (i) {
                 case 0: bmp = this.rawMap; break;
                 case 1: bmp = this.carOverlay; break;
                 case 2: bmp = this.shadeOverlay; break;
                 case 3: bmp = this.routeOverlay; break;
+                case 4: bmp = this.instructionOverlay; break;
                 default: return;
             }
 
@@ -206,6 +213,7 @@ public class Map {
                 case 1: this.carOverlay = combined; break;
                 case 2: this.shadeOverlay = combined; break;
                 case 3: this.routeOverlay = combined; break;
+                case 4: this.instructionOverlay = combined; break;
                 default: return;
             }
         }
@@ -252,60 +260,64 @@ public class Map {
         if (this.processingSteeringInstructions) return false;
         Random rnd = new Random();
         /* TODO: translate the Car's current position into a node here */
-        Node source = nw.getNodes().get(rnd.nextInt(nw.getNodes().size()));
+        Node source = nw.getEdges().get(rnd.nextInt(nw.getEdges().size())).n1();
         /* TODO: translate the targeted coordinates into a node here */
-        Node destination = nw.getNodes().get(rnd.nextInt(nw.getNodes().size()));
+        Node destination = nw.getEdges().get(rnd.nextInt(nw.getEdges().size())).n2();
 
         final Node[] route =  FastFinder.findRoute(nw, source, destination);
         if (route == null) Toast.makeText(ctx, "Sorry, we couldn't find a route to that place!", Toast.LENGTH_LONG).show();
         else {
-            this.processingSteeringInstructions = true;
-            final int[] directions = new int[route.length *2];
             PointF[] stops = new PointF[route.length];
-            int pos = 0;
-            do {
-                int[] next = this.car.findPath(route[pos].getLoc(),
-                        this.rawMap.getWidth(), this.rawMap.getHeight());
-
-                directions[pos *2] = next[0];
-                directions[pos *2 +1] = next[1];
-                stops[pos] = route[pos].getLoc();
-
-            } while (++pos < route.length);
+            for (int i = 0; i < route.length; i++) stops[i] = route[i].getLoc();
             this.visualizeRoute(stops);
+
+            if (mainActivity != null && drawCallback != null) try { drawCallback.invoke(mainActivity); }
+            catch (Exception e) { e.printStackTrace(); }
+            processingSteeringInstructions = true;
 
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    for (int i = 0; i < route.length; i++) {
-                        if (btInterface != null) {
-                            if (btInterface.busy()) {
-                                Toast.makeText(ctx, "Processing your request...", Toast.LENGTH_LONG).show(); break; }
+                    if (btInterface != null) {
+                        while (btInterface.busy()) try { Thread.sleep(500); }
+                        catch (InterruptedException e) { e.printStackTrace(); }
 
+                        for (int i = 0; i < route.length; i++) {
                             steeringCallbackReceived = false;
 
-                            byte deg = (byte)((Math.abs(directions[i *2]) &0x7F) |(directions[i *2] > 0 ? 0b10000000 : 0x00));
-                            byte cm  = (byte)((Math.abs(directions[i *2 +1]) &0x7F) |(directions[i *2 +1] < 0 ? 0b10000000 : 0x00));
+                            int[] directions = car.findPath(route[i].getLoc(), rawMap.getWidth(), rawMap.getHeight());
 
-                            btInterface.send(new Instruction(new byte[]{ 0x31, deg }, 3, BluetoothService.AWAITING_STEERING_CALLBACK), true);
-                            btInterface.send(new Instruction(new byte[]{ 0x41, cm }, 2, BluetoothService.AWAITING_STEERING_CALLBACK), true);
+                            byte deg = (byte) ((Math.abs(directions[0]) & 0x7F) | (directions[0] > 0 ? 0b10000000 : 0x00));
+                            byte cm = (byte) ((Math.abs(directions[1]) & 0x7F) | (directions[1] < 0 ? 0b10000000 : 0x00));
+
+                            btInterface.send(new Instruction(new byte[]{0x31, deg}, 3, BluetoothService.AWAITING_STEERING_CALLBACK), true);
+                            btInterface.send(new Instruction(new byte[]{0x41, cm}, 2, BluetoothService.AWAITING_STEERING_CALLBACK), true);
 
                             while (!steeringCallbackReceived) try { Thread.sleep(500); }
-                            catch (InterruptedException e) { e.printStackTrace(); }
+                            catch (InterruptedException e) { e.printStackTrace();}
+
+                            setLastCar(getCar());
+                            car.rotate(directions[0]);
+                            drawCar();
+
+                            setLastCar(getCar());
+                            car.move(directions[1]);
+                            drawCar();
+
+                            if (mainActivity != null && drawCallback != null) try { drawCallback.invoke(mainActivity); }
+                            catch (Exception e) { e.printStackTrace(); }
                         }
-
-                        setLastCar(getCar());
-                        car.rotate(directions[i *2]);
-                        drawCar();
-
-                        setLastCar(getCar());
-                        car.move(directions[i *2 +1]);
-                        drawCar();
                     }
                     processingSteeringInstructions = false;
-                    Toast.makeText(ctx, "MARBLE has reached it's destination.", Toast.LENGTH_SHORT).show();
+                    Handler handler = new Handler(ctx.getMainLooper());
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(ctx, "MARBLE has reached it's destination.", Toast.LENGTH_SHORT).show();
+                        }
+                    });
                 }
-            });
+            }).start();
             return true;
         }
         return false;
