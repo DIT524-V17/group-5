@@ -13,6 +13,7 @@ public class Graph {
         this.nodes = new ArrayList<>();
         this.edges = new ArrayList<>();
         this.linFunc = linearFunction;
+
     }
 
     public boolean addNode(Node n){
@@ -62,6 +63,10 @@ public class Graph {
         return null;
     }
 
+    protected boolean hasNode(Node n){
+        return this.nodes.contains(n);
+    }
+
     public void addToGraph(Node n){
         //TODO:find nearest edge
         //get slope of edge
@@ -71,61 +76,80 @@ public class Graph {
         List<Edge> edges = this.edges;
         List<Edge> newEdges = new ArrayList<>();
         List<Edge> connectedEdges = new ArrayList<>();
-
+        LinearFunction f = this.linFunc;
 
         for(Edge edge : edges){                     //collects edges, perpendicular to every edge already added
             //and stemming from n
             //get slope for the perpendicular line
-            double a = - (1 / edge.slope());
+            double a = -(1 / edge.slope());
+            System.out.println(edge.slope());
+            System.out.println(a + "slopeeeeeeeeeee");
+
 
             //find b for the perpendicular function
-            //a * x + b = y
-            //b = y /(a * x)
-            double b = n.y() / (a * n.x());
+            //y = ax+b
+            //n.y = a*n.x + b
+            //-b = a*n.x - n.y
+            //b = n.y - a*n.x
+            double b = n.y() - (a * n.x());
 
             //find b for edge's function
-            double bEdge = edge.n1().y() / (edge.slope() * edge.n1().x());
+            double bEdge = edge.n1().y() - (edge.slope() * edge.n1().x());
 
             //find intersection point m for edge and ax+b=y (n)
             //ax+b = cx+d (x1=x2, y1=y2)
-            //x = (d-b)/(a-c)
-            double x = (bEdge - b) / (a - edge.slope());
-            double y = a * x + b;
-            System.out.println("x- "+x+"  y-"+y);
 
-            //check if x,y lie on edge
+            //x = (d-b)/(a-c)
+            double x = (bEdge-b) / (a - edge.slope());
+            double y = a * x + b;
+            System.out.println("x- "+x+"  y- "+y);
+
+            //check if x,y lie within the scope of the map sort of
             boolean lies = true;
             lies = x>0 && lies;
-            lies = x<400 && lies;
+            lies = x<this.linFunc.getWidth() && lies;
             lies = y>0 && lies;
-            lies = y<400 && lies;
+            lies = y<this.linFunc.getHeight() && lies;
 
-            if (lies)
-                newEdges.add(new Edge(new Node(x,y,0),n,null));
-            connectedEdges.add(edge);
+            if (lies) {
+                newEdges.add(new Edge(new Node(x, y, 10000), n, f));
+                connectedEdges.add(edge);
+            }
         }
 
         //find the shortest of the newly drawn edges
-        Edge shortest = new Edge(n,n,null);
-        Edge closest = new Edge(n,n,null);
+        Edge shortest = new Edge(n,n,f);
+        Edge closest = new Edge(n,n,f);
         System.out.println(shortest);
 
         for(int i = 0; i<newEdges.size(); i++) {
             if (shortest.n1()==shortest.n2() || shortest.distance() > newEdges.get(i).distance()) {
+                System.out.println("executes");
                 shortest = newEdges.get(i);
                 closest = connectedEdges.get(i);
             }
         }
-        System.out.println(shortest);
-        System.out.println(closest);
+        System.out.println(shortest+ "      shortest");
+        System.out.println(closest + "      closest");
 
-        //at this point you have the edge to draw and the edge to cut in order to create a node at the
+        //at this point you have the edge to draw and the edge to cut/extend in order to create a node at the
         //appropriate place
+        //shortest.n1 is the intersection point
 
-        Edge e1 = new Edge(closest.n1(), shortest.n1(),null);
-        Edge e2 = new Edge(shortest.n1(), closest.n2(), null);
+        //check if shortest.n1 lies on closest
+        Edge e1 = closest;
+        Edge e2 = new Edge(closest.n2(),shortest.n1(),f);
+        if(closest.containsPoint(shortest.n1().x(),shortest.n1().y())){
+            e1 = new Edge(closest.n1(),shortest.n1(),f);
+            e2 = new Edge(shortest.n1(),closest.n2(),f);
+        }
+        else if(shortest.n1().x()>closest.n1().x()){
+            e1 = closest;
+            e2 = new Edge(closest.n1(),shortest.n1(),f);
+        }
 
         if(this.edges.remove(closest)){
+            System.out.println("removes");
             this.edges.add(e1);
             this.edges.add(e2);
             this.edges.add(shortest);

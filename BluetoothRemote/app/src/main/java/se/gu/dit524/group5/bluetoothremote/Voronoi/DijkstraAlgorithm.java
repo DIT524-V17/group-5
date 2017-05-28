@@ -6,17 +6,24 @@ import java.util.*;
 public class DijkstraAlgorithm {
     private final List<Node> nodes;
     private final List<Edge> edges;
+    private Graph graph;
     private Set<Node> settledNodes;
     private Set<Node> unSettledNodes;
     private Map<Node,Node> predecessors;
     private Map<Node,Double> distance;
 
     public DijkstraAlgorithm(Graph g){
+        this.graph = g;
         this.nodes = new ArrayList<Node>(g.nodes);
         this.edges = new ArrayList<Edge>(g.edges);
     }
 
     public void execute(Node n){
+        if (!this.graph.hasNode(n))
+            this.graph.addToGraph(n);
+
+
+
         settledNodes = new HashSet<Node>();
         unSettledNodes = new HashSet<Node>();
         distance = new HashMap<Node, Double>();
@@ -81,11 +88,13 @@ public class DijkstraAlgorithm {
         }
     }
 
-    public LinkedList<Node> getPath(Node n){
+    public LinkedList<Node> getPath(Node n) {
         LinkedList<Node> path = new LinkedList<Node>();
         Node step = n;
-        if (predecessors.get(step) == null)
+        if (predecessors.get(step) == null){
+            System.out.println("aaaaaaaaaaaaaaaaaaaaa");
             return null;
+    }
         path.add(step);
         while(predecessors.get(step)!=null){
             step = predecessors.get(step);

@@ -307,4 +307,11 @@ public class LinearFunction {
         double[] arr = new double[]{m,b};
         return arr;
     }
+
+    int getWidth(){
+        return MAPWIDTH;
+    }
+    int getHeight(){
+        return MAPHEIGHT;
+    }
 }

@@ -36,12 +36,12 @@ public class Main {
 
         //ACTUAL dijkstra calculation
         DijkstraAlgorithm dijkstra = new DijkstraAlgorithm(g);
-        dijkstra.execute(g.nodes.get(3));
+        dijkstra.execute(new Node(4,4,100));
         LinkedList<Node> path = dijkstra.getPath(g.nodes.get(1));
 
         //print nodes
         System.out.println("EDGES");
-        for(Node e : path){
+        for(Edge e:g.edges){
             System.out.println(e);
         }
         System.out.println();

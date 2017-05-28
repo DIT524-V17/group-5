@@ -6,12 +6,12 @@ public class Edge {
     private final Node n1;
     private final Node n2;
     private final double distance;
-    private final String function;
+    final LinearFunction function;
 
     public Edge(Node n1, Node n2, LinearFunction func){
         this.n1 = n1;
         this.n2 = n2;
-        this.function = func.getLinearFunction(n1,n2);
+        this.function = func;
         this.distance = Math.sqrt(
                       Math.pow(n1.y()-n2.y(),2)
                     + Math.pow(n1.x()-n2.x(),2)
@@ -52,13 +52,22 @@ public class Edge {
         return this.n2;
     }
 
+    public boolean containsPoint(double x, double y){
+        boolean contains = true;
+        contains = contains && ((x<this.n1().x() && x>this.n2().x()) ||
+                                 x>this.n1().x() && x<this.n2().x());
+        contains = contains && ((y<this.n1().y() && y>this.n2().y()) ||
+                                 y>this.n1().y() && y<this.n2().y());
+        return contains;
+
+    }
+
     public double distance(){
         return distance;
     }
 
     public double slope(){
-        return  (this.n2.y() - this.n1.y())/
-                (this.n2.x() - this.n1.x());
+        return this.function.getSlope(this.n1,this.n2);
     }
 
     //TODO: bugtest/bugfix the algorithm
