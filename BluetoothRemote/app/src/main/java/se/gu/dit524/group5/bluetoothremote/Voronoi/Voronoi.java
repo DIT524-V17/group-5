@@ -1,4 +1,4 @@
-package se.gu.dit524.group5.bluetoothremote.Voronoi;
+//package se.gu.dit524.group5.bluetoothremote.Voronoi;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -108,11 +108,11 @@ public class Voronoi {
         paint.setColor(Color.GREEN);
         paint.setStyle(Paint.Style.FILL_AND_STROKE);
 
-        for (Node n : this.voronoiGraph.nodes) c.drawCircle((float) n.x, (float) n.y, 2, paint);
+        for (Node n : this.voronoiGraph.nodes) c.drawCircle((float) n.x(), (float) n.y(), 2, paint);
 
         paint.setColor(Color.LTGRAY);
 
-        for (Edge e : this.voronoiGraph.edges) c.drawLine((float) e.v1.x, (float) e.v1.y, (float) e.v2.x, (float) e.v2.y, paint);
+        for (Edge e : this.voronoiGraph.edges) c.drawLine((float) e.n1().x(), (float) e.n1().y(), (float) e.n2().x(), (float) e.n2().y(), paint);
     }
 
     public void extractVoronoiToGraph(){

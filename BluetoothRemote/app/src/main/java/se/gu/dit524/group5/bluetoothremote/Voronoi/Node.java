@@ -1,19 +1,34 @@
-package se.gu.dit524.group5.bluetoothremote.Voronoi;
+import com.vividsolutions.jts.geom.Coordinate;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
+/**
+ * Created by Vin on 15/05/2017.
+ */
 public class Node {
-    double x;
-    double y;
-    int id;
-    private HashMap<Node, Edge> neighbours;
+    private double x;
+    private double y;
+    private int id;
+    private HashMap<Node,Edge> neighbours;
 
-    public Node(double x, double y, int id)
-    {
+    public Node(double x, double y, int id){
         this.x = x;
         this.y = y;
         this.id = id;
         this.neighbours = new HashMap<>();
+    }
+
+    @Override
+    public String toString(){
+        return "(x="+this.x+" y="+this.y+")";
+    }
+    @Override
+    public boolean equals(Object obj){
+        if(!(obj instanceof Node))
+            return false;
+        Node n = (Node) obj;
+        return this.id() == n.id() || Math.abs(n.x - this.x) <= 0.5f && Math.abs(n.y - this.y) <= 0.5f;
     }
 
     public void addNeighbour(Node n, Edge e) {
@@ -28,14 +43,12 @@ public class Node {
         return this.id;
     }
 
-    @Override
-    public boolean equals(Object obj) {
-        if(obj instanceof Node){
-            Node v = (Node) obj;
-            return Math.abs(v.x - this.x) < 0.5 && Math.abs(v.y - this.y) < 0.5;
-        }else{
-            return false;
-        }
+    public double x(){
+        return this.x;
     }
-}
 
+    public double y(){
+        return this.y;
+    }
+
+}

@@ -1,4 +1,3 @@
-package se.gu.dit524.group5.bluetoothremote.Voronoi;
 import com.vividsolutions.jts.geom.Coordinate;
 import java.util.ArrayList;
 
@@ -40,8 +39,8 @@ public class LinearFunction {
         Node[] mapCooridnates = new Node[2];
         double m = getSlope(v1, v2);
         double b = getB(v1, m);
-        double v1x = v1.x; double v1y = v1.y;
-        double v2x = v2.x; double v2y = v2.y;
+        double v1x = v1.x(); double v1y = v1.y();
+        double v2x = v2.x(); double v2y = v2.y();
 
         //Working with the first point
         //If the x coordinate is outside of the map from the left side find y value such that x = 0;
@@ -101,8 +100,8 @@ public class LinearFunction {
 
         } else{}
 
-        mapCooridnates[0] = new Node(v1x,v1y, v1.id);
-        mapCooridnates[1] = new Node(v2x,v2y, v2.id);
+        mapCooridnates[0] = new Node(v1x,v1y, v1.id());
+        mapCooridnates[1] = new Node(v2x,v2y, v2.id());
 
         return mapCooridnates;
     }
@@ -238,8 +237,8 @@ public class LinearFunction {
 
     public double getSlope(Node v1, Node v2){
         //m = (y2 - y1)/(x2 - x1)
-        double x1 = v1.x; double y1 = v1.y;
-        double x2 = v2.x; double y2 = v2.y;
+        double x1 = v1.x(); double y1 = v1.y();
+        double x2 = v2.x(); double y2 = v2.y();
 
         return (y2 - y1)/(x2 - x1);
 
@@ -256,7 +255,7 @@ public class LinearFunction {
     public double getB(Node v, Double m){
         // b = y - mx
 
-        return (v.y - ((m)*(v.x)));
+        return (v.y() - ((m)*(v.x())));
     }
 
     public double getB(Coordinate c, Double m){
@@ -309,4 +308,3 @@ public class LinearFunction {
         return arr;
     }
 }
-
