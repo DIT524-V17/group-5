@@ -200,18 +200,42 @@ public class Voronoi {
                         double min = Math.min(ver.x, ver2.x);
                         double max = Math.max(ver.x, ver2.x);
 
-                        for (double k = min; k <= max; k++) {
-                            int x = (int) k;
-                            int y = (int) ((m * x) + b);
+                        if (min == max) {
+                            double minY = Math.min(ver.y, ver2.y);
+                            double maxY = Math.max(ver.y, ver2.y);
+                            for (int y = (int) minY; y <= maxY; y++)
+                                if ((inputMap.getPixel((int) min, y) &0xff) != 0xff) {
+                                    isColliding = true;
+                                    break;
+                                }
+                        }
+                        else {
+                            for (double k = min; k <= max; k++) {
+                                int x = (int) k;
+                                int y = (int) ((m * x) + b);
 
-                            if (x < 0) x = 0;
-                            else if (x >= inputMap.getWidth()) x = inputMap.getWidth() -1;
+                                if (x < 0) x = 0;
+                                else if (x >= inputMap.getWidth()) x = inputMap.getWidth() - 1;
 
-                            if (y < 0) y = 0;
-                            else if (y >= inputMap.getHeight()) y = inputMap.getHeight() -1;
+                                if (y < 0) y = 0;
+                                else if (y >= inputMap.getHeight()) y = inputMap.getHeight() - 1;
 
-                            if ((inputMap.getPixel(x, y) &0xff) != 0xff) {
-                                isColliding = true; break;
+                                if ((inputMap.getPixel(x, y) & 0xff) != 0xff) {
+                                    isColliding = true;
+                                    break;
+                                }
+
+                                if (y + 1 < inputMap.getHeight())
+                                    if ((inputMap.getPixel(x, y + 1) & 0xff) != 0xff) {
+                                        isColliding = true;
+                                        break;
+                                    }
+
+                                if (y - 1 >= 0)
+                                    if ((inputMap.getPixel(x, y - 1) & 0xff) != 0xff) {
+                                        isColliding = true;
+                                        break;
+                                    }
                             }
                         }
                         if (isColliding) this.voronoiGraph.edges.remove(e);

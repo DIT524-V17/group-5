@@ -8,6 +8,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Point;
 import android.graphics.PointF;
 import android.os.Bundle;
 import android.os.Handler;
@@ -34,9 +35,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Random;
 
-import se.gu.dit524.group5.bluetoothremote.Dijkstra.FastFinder;
 import se.gu.dit524.group5.bluetoothremote.Mapping.Map;
-import se.gu.dit524.group5.bluetoothremote.Voronoi.Node;
 import se.gu.dit524.group5.bluetoothremote.Voronoi.Voronoi;
 
 import static se.gu.dit524.group5.bluetoothremote.Mapping.Constants.*;
@@ -210,17 +209,34 @@ public class ActivitySecond extends AppCompatActivity {
                             @Override
                             public void onClick(View v) {
                                 voronoi = new Voronoi(map.generateConcreteMap(obstacleThreshold.getProgress()));
-                                int xInterval = (int)(map.getMap().getWidth() /Math.sqrt(
-                                        Math.pow(CAR_HEIGHT -WHEEL_FRONT_OFFSET -WHEEL_HEIGHT /2 +CUPHOLDER_HEIGHT, 2)+ Math.pow(CAR_WIDTH, 2)) *2);
-                                int yInterval = (int)(map.getMap().getHeight() /Math.sqrt(
-                                        Math.pow(CAR_HEIGHT -WHEEL_FRONT_OFFSET -WHEEL_HEIGHT /2 +CUPHOLDER_HEIGHT, 2)+ Math.pow(CAR_WIDTH, 2)) *2);
+                                ArrayList<Point> obstacleCenters = map.getObstacleCenters();
+                                if (obstacleCenters != null && obstacleCenters.size() > 0) {
+                                    for (Point p : obstacleCenters) {
+                                        if ((map.generateConcreteMap(obstacleThreshold.getProgress()).
+                                                getPixel(p.x, p.y) & 0xff) != 0xff) voronoi.addSite(new Coordinate(p.x, p.y));
+                                        else if (p.x +1 < map.getMap().getWidth() && (map.generateConcreteMap(obstacleThreshold.getProgress()).
+                                                getPixel(p.x +1, p.y) & 0xff) != 0xff) voronoi.addSite(new Coordinate(p.x +1, p.y));
+                                        else if (p.x -1 >= 0 && (map.generateConcreteMap(obstacleThreshold.getProgress()).
+                                                getPixel(p.x -1, p.y) & 0xff) != 0xff) voronoi.addSite(new Coordinate(p.x -1, p.y));
+                                        else if (p.y +1 < map.getMap().getHeight() && (map.generateConcreteMap(obstacleThreshold.getProgress()).
+                                                getPixel(p.x, p.y +1) & 0xff) != 0xff) voronoi.addSite(new Coordinate(p.x, p.y +1));
+                                        else if (p.y -1 >= 0 && (map.generateConcreteMap(obstacleThreshold.getProgress()).
+                                                getPixel(p.x, p.y -1) & 0xff) != 0xff) voronoi.addSite(new Coordinate(p.x, p.y -1));
+                                    }
+                                }
+                                else {
+                                    int xInterval = (int) (map.getMap().getWidth() / Math.sqrt(
+                                            Math.pow(CAR_HEIGHT - WHEEL_FRONT_OFFSET - WHEEL_HEIGHT / 2 + CUPHOLDER_HEIGHT, 2) + Math.pow(CAR_WIDTH, 2)) * 2);
+                                    int yInterval = (int) (map.getMap().getHeight() / Math.sqrt(
+                                            Math.pow(CAR_HEIGHT - WHEEL_FRONT_OFFSET - WHEEL_HEIGHT / 2 + CUPHOLDER_HEIGHT, 2) + Math.pow(CAR_WIDTH, 2)) * 2);
 
-                                for (int x = xInterval /2; x < map.getMap().getWidth(); x += xInterval) {
-                                    for (int y = 0; y < map.getMap().getHeight(); y += yInterval)
-                                        voronoi.addSite(new Coordinate(x, y));
-                                    x += xInterval;
-                                    for (int y = yInterval /2; y < map.getMap().getHeight(); y += yInterval)
-                                        voronoi.addSite(new Coordinate(x, y));
+                                    for (int x = xInterval / 2; x < map.getMap().getWidth(); x += xInterval) {
+                                        for (int y = 0; y < map.getMap().getHeight(); y += yInterval)
+                                            voronoi.addSite(new Coordinate(x, y));
+                                        x += xInterval;
+                                        for (int y = yInterval / 2; y < map.getMap().getHeight(); y += yInterval)
+                                            voronoi.addSite(new Coordinate(x, y));
+                                    }
                                 }
                                 voronoi.createVoronoi();
                                 voronoi.extractVoronoiToGraph();
@@ -312,12 +328,21 @@ public class ActivitySecond extends AppCompatActivity {
                     float mvHeight = mapView.getMeasuredHeight();
                     float heightCR = mvHeight / map.getMap().getHeight();
 
+                    float deltaX = mvWidth -map.getMap().getWidth();
+                    float deltaY = mvHeight -map.getMap().getHeight();
+
+                    // float x = event.getX();
+                    // if (x < 0) x = 0;
+                    // else if (x >= mapView.getMeasuredWidth()) x = mapView.getMeasuredWidth();
+
+                    // float y = event.getY();
+                    // if (y < 0) y = 0;
+                    // else if (y >= mapView.getMeasuredHeight()) y = mapView.getMeasuredHeight();
+
+                    System.out.println("deltaX: " +deltaX +" / deltaY: " +deltaY);
+
                     float x = event.getX();
-                    if (x < 0) x = 0;
-                    else if (x >= mapView.getMeasuredWidth()) x = mapView.getMeasuredWidth();
                     float y = event.getY();
-                    if (y < 0) y = 0;
-                    else if (y >= mapView.getMeasuredHeight()) y = mapView.getMeasuredHeight();
 
                     PointF dest = new PointF(x / widthCR, y / heightCR);
 
@@ -491,12 +516,12 @@ public class ActivitySecond extends AppCompatActivity {
     }
 
     public void saveMap(View view) {
-        String id = this.saveImage(this, this.map.getMap(), IMG_TYPE_MAP, null);
+        String id = this.saveImage(this, this.map.exportMap(), IMG_TYPE_MAP, null);
         if (this.voronoi != null && this.voronoi.siteMap != null)
             this.saveImage(this, this.voronoi.exportSiteMap(), IMG_TYPE_SITES, id);
 
         Toast toast = Toast.makeText(this.getApplicationContext(),
-                "Your map has been saved.", Toast.LENGTH_SHORT);
+                "Your map has been saved.", Toast.LENGTH_LONG);
         toast.show();
     }
 
@@ -517,7 +542,7 @@ public class ActivitySecond extends AppCompatActivity {
         if (identifier == null) {
             // defining a suitable file name
             Calendar c = Calendar.getInstance();
-            SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd_H:m:s.S");
+            SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss.SSS");
             identifier = df.format(c.getTime());
         }
 
@@ -545,15 +570,29 @@ public class ActivitySecond extends AppCompatActivity {
 
     public static Bitmap loadImage(Context context, String fileName) {
         try {
-            // getting a pointer to the map directory
-            ContextWrapper cw = new ContextWrapper(context.getApplicationContext());
-            File directory = cw.getDir("maps", Context.MODE_PRIVATE);
-            File f = new File(directory, fileName);
+            if (fileName.equals("map_demo_100x100_objectoutlines.png")) {
+                Bitmap bmp = BitmapFactory.decodeResource(context.getResources(), R.drawable.map_demo_100x100_objectoutlines)
+                        .copy(Bitmap.Config.ARGB_8888, true);
+                bmp.setConfig(Bitmap.Config.ARGB_4444);
+                return bmp;
+            }
+            else if (fileName.equals("sites_demo_100x100_objectoutlines.png")) {
+                Bitmap bmp = BitmapFactory.decodeResource(context.getResources(), R.drawable.sites_demo_100x100_objectoutlines)
+                        .copy(Bitmap.Config.ARGB_8888, true);
+                bmp.setConfig(Bitmap.Config.ARGB_4444);
+                return bmp;
+            }
+            else {
+                // getting a pointer to the map directory
+                ContextWrapper cw = new ContextWrapper(context.getApplicationContext());
+                File directory = cw.getDir("maps", Context.MODE_PRIVATE);
+                File f = new File(directory, fileName);
 
-            // loading the image
-            Bitmap bmp = BitmapFactory.decodeStream(new FileInputStream(f)).copy(Bitmap.Config.ARGB_8888, true);
-            bmp.setConfig(Bitmap.Config.ARGB_4444);
-            return bmp;
+                // loading the image
+                Bitmap bmp = BitmapFactory.decodeStream(new FileInputStream(f)).copy(Bitmap.Config.ARGB_8888, true);
+                bmp.setConfig(Bitmap.Config.ARGB_4444);
+                return bmp;
+            }
 
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -579,6 +618,11 @@ public class ActivitySecond extends AppCompatActivity {
                 this.voronoi.parseSites(sites);
             }
             redrawMap();
+            updatePosView(this.map.getCar().center());
+
+            Toast toast = Toast.makeText(this.getApplicationContext(),
+                    "Please place MARBLE as close as possible to its last known location.", Toast.LENGTH_LONG);
+            toast.show();
         }
     }
 }

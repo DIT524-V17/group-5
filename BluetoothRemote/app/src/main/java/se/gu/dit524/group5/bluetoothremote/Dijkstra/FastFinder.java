@@ -28,7 +28,7 @@ public class FastFinder {
                     Edge edge = from.getNeighbours().get(node);
                     availableConnections.add(new PriorityConnection(from, edge, fastest[from.id()].weight()));
                 }
-                if (availableConnections.isEmpty()) return null;
+            if (availableConnections.isEmpty()) return null;
 
             // Get the next 'shortest' connection off the heap and store any information about the path taken within
             // the 'fastest' array - which will automatically mark the new node as visited, since fastest[conn.to.id]
@@ -49,7 +49,6 @@ public class FastFinder {
             }
             else from = shortest.to;    // In any other case, continue the next iteration using the latest endpoint.
         }
-
         return null;
     }
 }

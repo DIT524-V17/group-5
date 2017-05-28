@@ -7,6 +7,9 @@ import android.graphics.Path;
 import android.graphics.Point;
 import android.graphics.PointF;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+
 import static se.gu.dit524.group5.bluetoothremote.Mapping.Constants.*;
 
 /**
@@ -22,41 +25,51 @@ public class MapParser {
         this.car = car;
     }
 
+    ArrayList<Point> parseToList(int distanceFront, int distanceBack, int angle) {
+        return this.parse(distanceFront, distanceBack, angle, false, false);
+    }
+
     void parse(int distanceFront, int distanceBack, int angle) {
-        this.parse(distanceFront, distanceBack, angle, false);
+        this.parse(distanceFront, distanceBack, angle, true, false);
     }
 
     void clean(int distanceFront, int distanceBack, int angle) {
-        this.parse(distanceFront, distanceBack, angle, true);
+        this.parse(distanceFront, distanceBack, angle, true, true);
     }
 
-    private void parse(int distanceFront, int distanceBack, int angle, boolean cleanup) {
+    private ArrayList<Point> parse(int distanceFront, int distanceBack, int angle, boolean draw, boolean cleanup) {
         int frontAngle = (int) -this.car.front() -angle;
         int backAngle  = frontAngle -180;
 
+        ArrayList<Point> obstacleCenters = new ArrayList<>();
         double cos = Math.cos(Math.toRadians(frontAngle));
         double sin = Math.sin(Math.toRadians(frontAngle));
 
         if (distanceFront <= SENSOR_MAX_DISTANCE && distanceFront > 0) {
-           setAsObstacle(new Point((int) (distanceFront *cos +this.car.servo().x),
-                                   (int) (distanceFront *sin +this.car.servo().y)), frontAngle, cleanup);
+            obstacleCenters.add(new Point((int) (distanceFront *cos +this.car.servo().x),
+                                          (int) (distanceFront *sin +this.car.servo().y)));
+            if (draw) setAsObstacle(obstacleCenters.get(obstacleCenters.size() -1), frontAngle, cleanup);
         }
         else {
-            setAsObstacle(new Point((int) (SENSOR_MAX_DISTANCE *cos +this.car.servo().x),
-                                    (int) (SENSOR_MAX_DISTANCE *sin +this.car.servo().y)), frontAngle, true);
+            obstacleCenters.add(new Point((int) (SENSOR_MAX_DISTANCE *cos +this.car.servo().x),
+                                          (int) (SENSOR_MAX_DISTANCE *sin +this.car.servo().y)));
+            if (draw) setAsObstacle(obstacleCenters.get(obstacleCenters.size() -1), frontAngle, true);
         }
 
         cos = Math.cos(Math.toRadians(backAngle));
         sin = Math.sin(Math.toRadians(backAngle));
 
         if (distanceBack <= SENSOR_MAX_DISTANCE && distanceBack > 0) {
-            setAsObstacle(new Point((int) (distanceBack *cos +this.car.servo().x),
-                                    (int) (distanceBack *sin +this.car.servo().y)), backAngle, cleanup);
+            obstacleCenters.add(new Point((int) (distanceBack *cos +this.car.servo().x),
+                                          (int) (distanceBack *sin +this.car.servo().y)));
+            if (draw) setAsObstacle(obstacleCenters.get(obstacleCenters.size() -1), backAngle, cleanup);
         }
         else {
-            setAsObstacle(new Point((int) (SENSOR_MAX_DISTANCE *cos +this.car.servo().x),
-                                    (int) (SENSOR_MAX_DISTANCE *sin +this.car.servo().y)), backAngle, true);
+            obstacleCenters.add(new Point((int) (SENSOR_MAX_DISTANCE *cos +this.car.servo().x),
+                                          (int) (SENSOR_MAX_DISTANCE *sin +this.car.servo().y)));
+            if (draw) setAsObstacle(obstacleCenters.get(obstacleCenters.size() -1), backAngle, true);
         }
+        return obstacleCenters;
     }
 
     private void setAsObstacle(Point coord, int angle, boolean cleanUp){

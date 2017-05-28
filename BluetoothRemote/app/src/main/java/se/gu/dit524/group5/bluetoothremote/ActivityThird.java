@@ -43,6 +43,7 @@ public class ActivityThird extends AppCompatActivity {
         File[] files = directory.listFiles();
 
         ArrayList<String> selectableFiles = new ArrayList<>();
+        selectableFiles.add("map_demo_100x100_objectoutlines.png");
         for (int i = files.length -1; i >= 0; i--) {
             File f = files[i];
             if (f.getName().startsWith("map_"))
@@ -80,7 +81,11 @@ public class ActivityThird extends AppCompatActivity {
             File sites = new File(dir.getPath() +"/" +correspondingSites);
             loadMap = true;
 
-            if (sites.exists()) {
+            if (selected.equals("map_demo_100x100_objectoutlines.png")) {
+                loadSites = true;
+                returnWithResult();
+            }
+            else if (sites.exists()) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(ActivityThird.this);
                 builder.setMessage("Would you like to import the latest Voronoi-Sites that were saved alongside this map?");
                 builder.setNegativeButton("No, thanks. I'd like to start over.",
