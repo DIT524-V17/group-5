@@ -1,21 +1,28 @@
 package se.gu.dit524.group5.bluetoothremote.Mapping;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Path;
 import android.graphics.Point;
 import android.graphics.PointF;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.support.annotation.Nullable;
+import android.widget.Toast;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Random;
 
 import se.gu.dit524.group5.bluetoothremote.BluetoothService;
+import se.gu.dit524.group5.bluetoothremote.Dijkstra.FastFinder;
 import se.gu.dit524.group5.bluetoothremote.Instruction;
 import se.gu.dit524.group5.bluetoothremote.ScanResult;
+import se.gu.dit524.group5.bluetoothremote.Voronoi.Graph;
+import se.gu.dit524.group5.bluetoothremote.Voronoi.Node;
 
 import static se.gu.dit524.group5.bluetoothremote.Mapping.Constants.*;
 
@@ -28,9 +35,10 @@ public class Map {
     private BluetoothService btInterface;
     private ArrayList<ScanResult> sensorReadings;
     private MapParser mapParser;
-    private Bitmap rawMap, concreteMap, carOverlay, shadeOverlay, routeOverlay;
-
+    private Bitmap rawMap, concreteMap, carOverlay, shadeOverlay, routeOverlay, instructionOverlay;
     private int lastConcreteObstacleThreshold;
+
+    public boolean processingSteeringInstructions, steeringCallbackReceived;
 
     private Car car = new Car(SENSOR_MAX_DISTANCE, SENSOR_MAX_DISTANCE, 0);
     private Car lastCar = new Car(this.car);
@@ -66,6 +74,7 @@ public class Map {
         this.carOverlay = Bitmap.createBitmap(this.rawMap.getWidth(), this.rawMap.getHeight(), Bitmap.Config.ARGB_4444);
         this.shadeOverlay = Bitmap.createBitmap(this.rawMap.getWidth(), this.rawMap.getHeight(), Bitmap.Config.ARGB_4444);
         this.routeOverlay = Bitmap.createBitmap(this.rawMap.getWidth(), this.rawMap.getHeight(), Bitmap.Config.ARGB_4444);
+        this.instructionOverlay = Bitmap.createBitmap(this.rawMap.getWidth(), this.rawMap.getHeight(), Bitmap.Config.ARGB_4444);
 
         this.drawCar();
     }
@@ -78,6 +87,7 @@ public class Map {
         this.carOverlay = Bitmap.createBitmap(this.rawMap.getWidth(), this.rawMap.getHeight(), Bitmap.Config.ARGB_4444);
         this.shadeOverlay = Bitmap.createBitmap(this.rawMap.getWidth(), this.rawMap.getHeight(), Bitmap.Config.ARGB_4444);
         this.routeOverlay = Bitmap.createBitmap(this.rawMap.getWidth(), this.rawMap.getHeight(), Bitmap.Config.ARGB_4444);
+        this.instructionOverlay = Bitmap.createBitmap(this.rawMap.getWidth(), this.rawMap.getHeight(), Bitmap.Config.ARGB_4444);
 
         this.drawCar();
     }
@@ -127,6 +137,10 @@ public class Map {
 
     public Bitmap getRouteOverlay() {
         return this.routeOverlay;
+    }
+
+    public Bitmap getInstructionOverlay() {
+        return this.instructionOverlay;
     }
 
     public Bitmap exportMap() {
@@ -234,15 +248,77 @@ public class Map {
         this.car = new Car(c.center().x, c.center().y, c.front());
     }
 
+    public boolean updateCarPosition(final Context ctx, Graph nw, PointF src, PointF dst) {
+        if (this.processingSteeringInstructions) return false;
+        Random rnd = new Random();
+        /* TODO: translate the Car's current position into a node here */
+        Node source = nw.getNodes().get(rnd.nextInt(nw.getNodes().size()));
+        /* TODO: translate the targeted coordinates into a node here */
+        Node destination = nw.getNodes().get(rnd.nextInt(nw.getNodes().size()));
+
+        final Node[] route =  FastFinder.findRoute(nw, source, destination);
+        if (route == null) Toast.makeText(ctx, "Sorry, we couldn't find a route to that place!", Toast.LENGTH_LONG).show();
+        else {
+            this.processingSteeringInstructions = true;
+            final int[] directions = new int[route.length *2];
+            PointF[] stops = new PointF[route.length];
+            int pos = 0;
+            do {
+                int[] next = this.car.findPath(route[pos].getLoc(),
+                        this.rawMap.getWidth(), this.rawMap.getHeight());
+
+                directions[pos *2] = next[0];
+                directions[pos *2 +1] = next[1];
+                stops[pos] = route[pos].getLoc();
+
+            } while (++pos < route.length);
+            this.visualizeRoute(stops);
+
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    for (int i = 0; i < route.length; i++) {
+                        if (btInterface != null) {
+                            if (btInterface.busy()) {
+                                Toast.makeText(ctx, "Processing your request...", Toast.LENGTH_LONG).show(); break; }
+
+                            steeringCallbackReceived = false;
+
+                            byte deg = (byte)((Math.abs(directions[i *2]) &0x7F) |(directions[i *2] > 0 ? 0b10000000 : 0x00));
+                            byte cm  = (byte)((Math.abs(directions[i *2 +1]) &0x7F) |(directions[i *2 +1] < 0 ? 0b10000000 : 0x00));
+
+                            btInterface.send(new Instruction(new byte[]{ 0x31, deg }, 3, BluetoothService.AWAITING_STEERING_CALLBACK), true);
+                            btInterface.send(new Instruction(new byte[]{ 0x41, cm }, 2, BluetoothService.AWAITING_STEERING_CALLBACK), true);
+
+                            while (!steeringCallbackReceived) try { Thread.sleep(500); }
+                            catch (InterruptedException e) { e.printStackTrace(); }
+                        }
+
+                        setLastCar(getCar());
+                        car.rotate(directions[i *2]);
+                        drawCar();
+
+                        setLastCar(getCar());
+                        car.move(directions[i *2 +1]);
+                        drawCar();
+                    }
+                    processingSteeringInstructions = false;
+                    Toast.makeText(ctx, "MARBLE has reached it's destination.", Toast.LENGTH_SHORT).show();
+                }
+            });
+            return true;
+        }
+        return false;
+    }
+
     public boolean updateCarPosition(float x, float y, boolean move, boolean draw) {
         if (move) {
-            int[] directions = this.car.findPath(new PointF(this.car.center().x +x, this.car.center().y +y),
-                    (float) (Math.sqrt(Math.pow(this.rawMap.getWidth() /2, 2) + Math.pow(this.rawMap.getHeight() /2, 2))));
-
-            // TODO: implement Dijkstra
-            // TODO: draw path within ActivitySecond
+            if (this.processingSteeringInstructions) return false;
+            PointF dest = new PointF(this.car.center().x +x, this.car.center().y +y);
+            int[] directions = this.car.findPath(dest, this.rawMap.getWidth(), this.rawMap.getHeight());
 
             if (directions[0] != 0 || directions[1] != 0) {
+                this.visualizeRoute(new PointF[]{ dest });
                 if (btInterface != null) {
                     if (btInterface.busy()) return false;
 
@@ -268,12 +344,28 @@ public class Map {
         return false;
     }
 
-    public void processScanResult(ScanResult scanResult) {
-        this.processScanResult(scanResult, true);
+    private void visualizeRoute(PointF[] stops) {
+        this.instructionOverlay = Bitmap.createBitmap(
+                this.rawMap.getWidth(), this.rawMap.getHeight(), Bitmap.Config.ARGB_4444);
+
+        Path path = new Path();
+        path.moveTo(this.car.center().x, this.car.center().y);
+        for (PointF stop : stops) path.lineTo(stop.x, stop.y);
+
+        Paint paint = new Paint();
+        paint.setAntiAlias(true);
+        paint.setStrokeWidth(2.0f);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setColor(Color.argb(0xff, 0xff, 0xa4, 0x00));
+
+        Canvas canvas = new Canvas(this.instructionOverlay);
+        canvas.drawPath(path, paint);
+
+        // TODO: invoke some redrawMap-Callback
     }
 
-    public ArrayList<Point> processScanResultToList(ScanResult scanResult) {
-        return this.processScanResult(scanResult, false);
+    public void processScanResult(ScanResult scanResult) {
+        this.processScanResult(scanResult, true);
     }
 
     private ArrayList<Point> processScanResult(ScanResult scanResult, boolean draw) {

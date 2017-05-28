@@ -328,9 +328,6 @@ public class ActivitySecond extends AppCompatActivity {
                     float mvHeight = mapView.getMeasuredHeight();
                     float heightCR = mvHeight / map.getMap().getHeight();
 
-                    float deltaX = mvWidth -map.getMap().getWidth();
-                    float deltaY = mvHeight -map.getMap().getHeight();
-
                     // float x = event.getX();
                     // if (x < 0) x = 0;
                     // else if (x >= mapView.getMeasuredWidth()) x = mapView.getMeasuredWidth();
@@ -338,8 +335,6 @@ public class ActivitySecond extends AppCompatActivity {
                     // float y = event.getY();
                     // if (y < 0) y = 0;
                     // else if (y >= mapView.getMeasuredHeight()) y = mapView.getMeasuredHeight();
-
-                    System.out.println("deltaX: " +deltaX +" / deltaY: " +deltaY);
 
                     float x = event.getX();
                     float y = event.getY();
@@ -352,10 +347,13 @@ public class ActivitySecond extends AppCompatActivity {
 
                         if (event.getAction() == MotionEvent.ACTION_UP) {
                             targetView.setVisibility(View.INVISIBLE);
-
-                            lastSteeringDirection = new PointF(dest.x - map.getCar().center().x, dest.y - map.getCar().center().y);
-                            if (map.updateCarPosition(lastSteeringDirection.x, lastSteeringDirection.y, true, true)) {
-                                updateCarPosition();
+                            if (voronoi != null && voronoi.voronoiGraph != null && voronoi.voronoiGraph.getNodes().size() > 0) {
+                                map.updateCarPosition(getApplicationContext(), voronoi.voronoiGraph, map.getCar().center(), dest);
+                            }
+                            else {
+                                lastSteeringDirection = new PointF(dest.x - map.getCar().center().x, dest.y - map.getCar().center().y);
+                                if (map.updateCarPosition(lastSteeringDirection.x, lastSteeringDirection.y, true, true))
+                                    updateCarPosition();
                             }
                         }
                     }
@@ -396,7 +394,7 @@ public class ActivitySecond extends AppCompatActivity {
                     btService.send(new Instruction(new byte[]{ (byte)0xF1, SERVO_TURN_DEGREES }, 1, BluetoothService.SCANNING), true);
 
                 // Is MARBLE out of order? Use the snippet below.
-
+                /*
                 byte[] fakeResults = new byte[180 /SERVO_TURN_DEGREES *3];
                 Random rnd = new Random();
                 int pos = 0;
@@ -406,7 +404,7 @@ public class ActivitySecond extends AppCompatActivity {
                     fakeResults[pos *3 +2] = (byte)(rnd.nextInt(SENSOR_MAX_DISTANCE));
                     pos++;
                 }
-                updateMap(new ScanResult(fakeResults, 0, fakeResults.length));
+                updateMap(new ScanResult(fakeResults, 0, fakeResults.length)); */
             }
         });
 
@@ -461,9 +459,10 @@ public class ActivitySecond extends AppCompatActivity {
     }
 
     public void updateCarPosition() {
-        // TODO: think about blocking any further map interaction until MARBLE is done.
-        this.lastSteeringDirection = null;
-        redrawMap();
+        if (!this.map.steeringCallbackReceived) this.map.steeringCallbackReceived = true;
+        else {
+            this.lastSteeringDirection = null; redrawMap();
+        }
     }
 
     private void redrawMap() {
@@ -482,6 +481,7 @@ public class ActivitySecond extends AppCompatActivity {
                 if (shadeToggle.isChecked()) c.drawBitmap(map.getShadeOverlay(), 0, 0, null);
                 if (voronoiToggle.isChecked()) c.drawBitmap(voronoi.getVoronoiMap(), 0, 0, null);
                 if (voronoiToggle.isChecked() && vSiteToggle.isChecked()) c.drawBitmap(voronoi.getSiteMap(), 0, 0, null);
+                if (map.processingSteeringInstructions) c.drawBitmap(map.getInstructionOverlay(), 0, 0, null);
                 c.drawBitmap(map.getCarOverlay(), 0, 0, null);
 
                 mapView.setImageBitmap(bmp);

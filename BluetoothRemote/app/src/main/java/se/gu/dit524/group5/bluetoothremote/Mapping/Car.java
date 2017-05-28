@@ -7,6 +7,7 @@ import android.graphics.Path;
 import android.graphics.PointF;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
+import android.support.annotation.Nullable;
 
 import static se.gu.dit524.group5.bluetoothremote.Mapping.Constants.*;
 
@@ -309,7 +310,8 @@ public class Car {
         this.relocate();
     }
 
-    public int[] findPath(PointF dest, float radius) {
+    public int[] findPath(PointF dest, int mapWidth, int mapHeight) {
+        float radius = (float) (Math.sqrt(Math.pow(mapWidth /2, 2) + Math.pow(mapHeight, 2)));
         int directions[] = new int[2];
         for (int angle = -180; angle <= 180; angle++) {
             Car c = new Car(this.center.x, this.center.y, this.front);

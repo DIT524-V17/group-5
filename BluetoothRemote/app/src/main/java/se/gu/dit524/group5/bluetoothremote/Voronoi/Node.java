@@ -1,8 +1,11 @@
 package se.gu.dit524.group5.bluetoothremote.Voronoi;
 
+import android.graphics.PointF;
+
 import java.util.HashMap;
 
 public class Node {
+    private PointF loc;
     double x;
     double y;
     int id;
@@ -13,6 +16,7 @@ public class Node {
         this.y = y;
         this.id = id;
         this.neighbours = new HashMap<>();
+        this.loc = new PointF((float) this.x, (float) this.y);
     }
 
     public void addNeighbour(Node n, Edge e) {
@@ -25,6 +29,10 @@ public class Node {
 
     public int id() {
         return this.id;
+    }
+
+    public PointF getLoc() {
+        return this.loc;
     }
 
     @Override
