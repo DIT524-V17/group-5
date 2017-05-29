@@ -1,4 +1,6 @@
 package se.gu.dit524.group5.bluetoothremote.Voronoi;
+import android.graphics.PointF;
+
 import com.vividsolutions.jts.geom.Coordinate;
 
 import java.util.ArrayList;
@@ -10,6 +12,7 @@ import java.util.HashMap;
 public class Node {
     private double x;
     private double y;
+    private PointF loc;
     private int id;
     private HashMap<Node,Edge> neighbours;
 
@@ -17,13 +20,8 @@ public class Node {
         this.x = x;
         this.y = y;
         this.id = id;
+        this.loc = new PointF((float) x, (float) y);
         this.neighbours = new HashMap<>();
-    }
-
-    public Node(Node n, Graph g){
-        this.x = n.x();
-        this.y = n.y();
-        this.id = g.nodes.size();
     }
 
     @Override
@@ -62,4 +60,11 @@ public class Node {
         return this.y;
     }
 
+    public PointF getLoc() {
+        return this.loc;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
 }

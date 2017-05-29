@@ -79,7 +79,7 @@ public class Voronoi {
         for(Polygon poly: this.polygons) {
             ArrayList tempIntCoords = new ArrayList();
             ArrayList tempIntCoords2 = new ArrayList();
-            Coordinate[] cs = getPoylgonVertices(poly);
+            Coordinate[] cs = getPolygonVertices(poly);
             if (cs == null) return;
             for (Coordinate coor : cs) {
                 tempIntCoords.add((int) Math.round(coor.x));
@@ -113,22 +113,24 @@ public class Voronoi {
         return this.voronoiMap;
     }
 
-    public void drawNodesAndEdges(Canvas c) {
-        if (c == null) {
+    public void drawNodesAndEdges(Bitmap bmp) {
+        if (bmp == null) {
             this.voronoiMap = Bitmap.createBitmap(MAP_WIDTH, MAP_HEIGHT, Bitmap.Config.ARGB_4444);
-            c = new Canvas(this.voronoiMap);
+            bmp = this.voronoiMap;
         }
         Paint paint = new Paint();
         paint.setAntiAlias(true);
-        paint.setStrokeWidth(1.5f);
+        paint.setStrokeWidth(1.0f);
         paint.setStyle(Paint.Style.FILL_AND_STROKE);
 
-        paint.setColor(NODE_COLOR);
-        for (Node n : this.voronoiGraph.nodes)
-            if (n.getNeighbours().size() > 0) c.drawCircle((float) n.x, (float) n.y, 2.0f, paint);
-
+        Canvas c = new Canvas(bmp);
         paint.setColor(EDGE_COLOR);
-        for (Edge e : this.voronoiGraph.edges) c.drawLine((float) e.v1.x, (float) e.v1.y, (float) e.v2.x, (float) e.v2.y, paint);
+        for (Edge e : this.voronoiGraph.edges) c.drawLine((float) e.n1().x(), (float) e.n1().y(), (float) e.n2().x(), (float) e.n2().y(), paint);
+        for (Node n : this.voronoiGraph.nodes) {
+            if (n.getNeighbours().size() > 0)
+                if (n.x() >= 0 && n.x() < bmp.getWidth() && n.y() >= 0 && n.y() < bmp.getHeight())
+                    bmp.setPixel((int) n.x(), (int) n.y(), NODE_COLOR);
+        }
     }
 
     public Bitmap getSiteMap() {
@@ -136,37 +138,25 @@ public class Voronoi {
         return this.siteMap;
     }
 
-    public void drawSiteMap(Canvas c) {
-        if (c == null) {
+    public void drawSiteMap(Bitmap bmp) {
+        if (bmp == null) {
             this.siteMap = Bitmap.createBitmap(MAP_WIDTH, MAP_HEIGHT, Bitmap.Config.ARGB_4444);
-            c = new Canvas(this.siteMap);
+            bmp = this.siteMap;
         }
-        Paint paint = new Paint();
-        paint.setAntiAlias(true);
-        paint.setStrokeWidth(1.5f);
-        paint.setStyle(Paint.Style.FILL_AND_STROKE);
-        paint.setColor(SITE_COLOR);
-
-        for (Coordinate s : this.sites) c.drawCircle((float) s.x, (float) s.y, 2.0f, paint);
+        for (Coordinate s : this.sites)
+            if (s.x >= 0 && s.x < bmp.getWidth() && s.y >= 0 && s.y < bmp.getHeight()) bmp.setPixel((int) s.x, (int) s.y, SITE_COLOR);
     }
 
     public Bitmap exportSiteMap() {
         Bitmap bmp = Bitmap.createBitmap(MAP_WIDTH, MAP_HEIGHT, Bitmap.Config.ARGB_4444);
-        Canvas c = new Canvas(bmp);
-
-        Paint paint = new Paint();
-        paint.setAntiAlias(true);
-        paint.setStrokeWidth(1.5f);
-        paint.setStyle(Paint.Style.FILL_AND_STROKE);
-        paint.setColor(SITE_COLOR);
-
-        for (Coordinate s : this.sites) c.drawPoint((float) s.x, (float) s.y, paint);
+        for (Coordinate s : this.sites)
+            if (s.x >= 0 && s.x < bmp.getWidth() && s.y >= 0 && s.y < bmp.getHeight()) bmp.setPixel((int) s.x, (int) s.y, SITE_COLOR);
         return bmp;
     }
 
     public void extractVoronoiToGraph() {
         for (Polygon poly : this.polygons) {
-            Coordinate[] cs = getPoylgonVertices(poly);
+            Coordinate[] cs = getPolygonVertices(poly);
             if (cs == null) continue;
             for (int i = 0; i < cs.length; i++) {
                 int j = i + 1;
@@ -197,12 +187,12 @@ public class Voronoi {
                         boolean isColliding = false;
                         double m = this.linFun.getSlope(ver, ver2);
                         double b = this.linFun.getB(ver, m);
-                        double min = Math.min(ver.x, ver2.x);
-                        double max = Math.max(ver.x, ver2.x);
+                        double min = Math.min(ver.x(), ver2.x());
+                        double max = Math.max(ver.x(), ver2.x());
 
                         if (min == max) {
-                            double minY = Math.min(ver.y, ver2.y);
-                            double maxY = Math.max(ver.y, ver2.y);
+                            double minY = Math.min(ver.y(), ver2.y());
+                            double maxY = Math.max(ver.y(), ver2.y());
                             for (int y = (int) minY; y <= maxY; y++)
                                 if ((inputMap.getPixel((int) min, y) &0xff) != 0xff) {
                                     isColliding = true;

@@ -43,7 +43,7 @@ public class ActivityThird extends AppCompatActivity {
         File[] files = directory.listFiles();
 
         ArrayList<String> selectableFiles = new ArrayList<>();
-        selectableFiles.add("map_demo_100x100_objectoutlines.png");
+        selectableFiles.add("map_demo_200x200_objectoutlines.png");
         for (int i = files.length -1; i >= 0; i--) {
             File f = files[i];
             if (f.getName().startsWith("map_"))
@@ -81,7 +81,7 @@ public class ActivityThird extends AppCompatActivity {
             File sites = new File(dir.getPath() +"/" +correspondingSites);
             loadMap = true;
 
-            if (selected.equals("map_demo_100x100_objectoutlines.png")) {
+            if (selected.equals("map_demo_200x200_objectoutlines.png")) {
                 loadSites = true;
                 returnWithResult();
             }

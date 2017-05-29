@@ -258,21 +258,13 @@ public class Map {
 
     public boolean updateCarPosition(final Context ctx, Graph nw, PointF src, PointF dst) {
         if (this.processingSteeringInstructions) return false;
-        Random rnd = new Random();
-        /* TODO: translate the Car's current position into a node here */
-        Node source = nw.getEdges().get(rnd.nextInt(nw.getEdges().size())).n1();
-        /* TODO: translate the targeted coordinates into a node here */
-        Node destination = nw.getEdges().get(rnd.nextInt(nw.getEdges().size())).n2();
+        final Node[] route =  FastFinder.findRoute(nw, new Node(src.x, src.y, -1), new Node(dst.x, dst.y, -1));
+        if (route != null) {
 
-        final Node[] route =  FastFinder.findRoute(nw, source, destination);
-        if (route == null) Toast.makeText(ctx, "Sorry, we couldn't find a route to that place!", Toast.LENGTH_LONG).show();
-        else {
             PointF[] stops = new PointF[route.length];
             for (int i = 0; i < route.length; i++) stops[i] = route[i].getLoc();
-            this.visualizeRoute(stops);
 
-            if (mainActivity != null && drawCallback != null) try { drawCallback.invoke(mainActivity); }
-            catch (Exception e) { e.printStackTrace(); }
+            this.visualizeRoute(stops);
             processingSteeringInstructions = true;
 
             new Thread(new Runnable() {
@@ -286,36 +278,43 @@ public class Map {
                             steeringCallbackReceived = false;
 
                             int[] directions = car.findPath(route[i].getLoc(), rawMap.getWidth(), rawMap.getHeight());
+                            if (directions[0] != -1 && directions[1] != -1) {
+                                byte deg = (byte) ((Math.abs(directions[0]) & 0x7F) | (directions[0] > 0 ? 0b10000000 : 0x00));
+                                byte cm = (byte) ((Math.abs(directions[1]) & 0x7F) | (directions[1] < 0 ? 0b10000000 : 0x00));
 
-                            byte deg = (byte) ((Math.abs(directions[0]) & 0x7F) | (directions[0] > 0 ? 0b10000000 : 0x00));
-                            byte cm = (byte) ((Math.abs(directions[1]) & 0x7F) | (directions[1] < 0 ? 0b10000000 : 0x00));
+                                btInterface.send(new Instruction(new byte[]{0x31, deg}, 3, BluetoothService.AWAITING_STEERING_CALLBACK), true);
+                                btInterface.send(new Instruction(new byte[]{0x41, cm}, 2, BluetoothService.AWAITING_STEERING_CALLBACK), true);
 
-                            btInterface.send(new Instruction(new byte[]{0x31, deg}, 3, BluetoothService.AWAITING_STEERING_CALLBACK), true);
-                            btInterface.send(new Instruction(new byte[]{0x41, cm}, 2, BluetoothService.AWAITING_STEERING_CALLBACK), true);
+                                while (!steeringCallbackReceived) try {
+                                    Thread.sleep(500);
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                }
 
-                            while (!steeringCallbackReceived) try { Thread.sleep(500); }
-                            catch (InterruptedException e) { e.printStackTrace();}
+                                setLastCar(getCar());
+                                car.rotate(directions[0]);
+                                drawCar();
 
-                            setLastCar(getCar());
-                            car.rotate(directions[0]);
-                            drawCar();
+                                setLastCar(getCar());
+                                car.move(directions[1]);
+                                drawCar();
 
-                            setLastCar(getCar());
-                            car.move(directions[1]);
-                            drawCar();
-
-                            if (mainActivity != null && drawCallback != null) try { drawCallback.invoke(mainActivity); }
-                            catch (Exception e) { e.printStackTrace(); }
+                                if (mainActivity != null && drawCallback != null) try {
+                                    drawCallback.invoke(mainActivity);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            }
                         }
                     }
+                    instructionOverlay = Bitmap.createBitmap(rawMap.getWidth(), rawMap.getHeight(), Bitmap.Config.ARGB_4444);
                     processingSteeringInstructions = false;
-                    Handler handler = new Handler(ctx.getMainLooper());
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            Toast.makeText(ctx, "MARBLE has reached it's destination.", Toast.LENGTH_SHORT).show();
-                        }
-                    });
+
+                    if (mainActivity != null && drawCallback != null) try {
+                        drawCallback.invoke(mainActivity);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
             }).start();
             return true;
@@ -330,7 +329,6 @@ public class Map {
             int[] directions = this.car.findPath(dest, this.rawMap.getWidth(), this.rawMap.getHeight());
 
             if (directions[0] != 0 || directions[1] != 0) {
-                this.visualizeRoute(new PointF[]{ dest });
                 if (btInterface != null) {
                     if (btInterface.busy()) return false;
 
@@ -361,19 +359,22 @@ public class Map {
                 this.rawMap.getWidth(), this.rawMap.getHeight(), Bitmap.Config.ARGB_4444);
 
         Path path = new Path();
-        path.moveTo(this.car.center().x, this.car.center().y);
-        for (PointF stop : stops) path.lineTo(stop.x, stop.y);
+        for (int i = 0; i < stops.length; i++) {
+            if (i == 0) path.moveTo(stops[i].x, stops[i].y);
+            else path.lineTo(stops[i].x, stops[i].y);
+        }
 
         Paint paint = new Paint();
         paint.setAntiAlias(true);
-        paint.setStrokeWidth(2.0f);
+        paint.setStrokeWidth(1.0f);
         paint.setStyle(Paint.Style.STROKE);
-        paint.setColor(Color.argb(0xff, 0xff, 0xa4, 0x00));
+        paint.setColor(Color.argb(0xff, 0xab, 0x47, 0xcb));
 
         Canvas canvas = new Canvas(this.instructionOverlay);
         canvas.drawPath(path, paint);
 
-        // TODO: invoke some redrawMap-Callback
+        if (mainActivity != null && drawCallback != null) try { drawCallback.invoke(mainActivity); }
+        catch (Exception e) { e.printStackTrace(); }
     }
 
     public void processScanResult(ScanResult scanResult) {

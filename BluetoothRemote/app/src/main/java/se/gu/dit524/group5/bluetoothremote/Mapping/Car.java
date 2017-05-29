@@ -312,7 +312,7 @@ public class Car {
 
     public int[] findPath(PointF dest, int mapWidth, int mapHeight) {
         float radius = (float) (Math.sqrt(Math.pow(mapWidth /2, 2) + Math.pow(mapHeight, 2)));
-        int directions[] = new int[2];
+        int directions[] = { -1, -1 };
         for (int angle = -180; angle <= 180; angle++) {
             Car c = new Car(this.center.x, this.center.y, this.front);
             c.rotate(angle, false);

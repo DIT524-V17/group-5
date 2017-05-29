@@ -67,7 +67,7 @@ public class ActivitySecond extends AppCompatActivity {
         reset.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-              /*  lastSteeringDirection = null;
+                lastSteeringDirection = null;
                 map = new Map(btService);
                 voronoi = null;
                 redrawMap();
@@ -469,7 +469,7 @@ public class ActivitySecond extends AppCompatActivity {
         }
     }
 
-    private void redrawMap() {
+    public void redrawMap() {
         Handler handler = new Handler(getBaseContext().getMainLooper());
         handler.post(new Runnable() {
             @Override
@@ -574,14 +574,14 @@ public class ActivitySecond extends AppCompatActivity {
 
     public static Bitmap loadImage(Context context, String fileName) {
         try {
-            if (fileName.equals("map_demo_100x100_objectoutlines.png")) {
-                Bitmap bmp = BitmapFactory.decodeResource(context.getResources(), R.drawable.map_demo_100x100_objectoutlines)
+            if (fileName.equals("map_demo_200x200_objectoutlines.png")) {
+                Bitmap bmp = BitmapFactory.decodeResource(context.getResources(), R.drawable.map_demo_200x200_objectoutlines)
                         .copy(Bitmap.Config.ARGB_8888, true);
                 bmp.setConfig(Bitmap.Config.ARGB_4444);
                 return bmp;
             }
-            else if (fileName.equals("sites_demo_100x100_objectoutlines.png")) {
-                Bitmap bmp = BitmapFactory.decodeResource(context.getResources(), R.drawable.sites_demo_100x100_objectoutlines)
+            else if (fileName.equals("sites_demo_200x200_objectoutlines.png")) {
+                Bitmap bmp = BitmapFactory.decodeResource(context.getResources(), R.drawable.sites_demo_200x200_objectoutlines)
                         .copy(Bitmap.Config.ARGB_8888, true);
                 bmp.setConfig(Bitmap.Config.ARGB_4444);
                 return bmp;
@@ -623,10 +623,6 @@ public class ActivitySecond extends AppCompatActivity {
             }
             redrawMap();
             updatePosView(this.map.getCar().center());
-
-            Toast toast = Toast.makeText(this.getApplicationContext(),
-                    "Please place MARBLE as close as possible to its last known location.", Toast.LENGTH_LONG);
-            toast.show();
         }
     }
 }

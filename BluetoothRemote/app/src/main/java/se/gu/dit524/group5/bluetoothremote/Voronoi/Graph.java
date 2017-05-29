@@ -48,7 +48,7 @@ public class Graph {
         return null;
     }
 
-    protected Node findNode(Node n){
+    public Node findNode(Node n){
         for (Node each : nodes){
             if (each.equals(n))
                 return each;
@@ -68,7 +68,7 @@ public class Graph {
         return this.nodes.contains(n);
     }
 
-    public void addToGraph(Node n){
+    public Node addToGraph(Node n){
         List<Edge> edges = this.edges;
         List<Edge> newEdges = new ArrayList<>();
         List<Edge> connectedEdges = new ArrayList<>();
@@ -136,69 +136,121 @@ public class Graph {
         Edge e1,e2;
 
         //at this point create properly initialized nodes to add later
-        n = new Node(n,this);
-        Node intersection = new Node(shortest.n1(),this);
+        n = new Node(n.x(), n.y(), this.nodes.size());
+        Node intersection = new Node(shortest.n1().x(), shortest.n1().y(), this.nodes.size() +1);
 
         if(closest.containsPoint(intersection.x(),intersection.y())) { //intersection on closest
-            //break apart edge
-            closest.n1().removeNeighbour(closest.n2());
-            closest.n2().removeNeighbour(closest.n1());
 
-            e1 = new Edge(closest.n1(), intersection, f);
-            closest.n1().addNeighbour(intersection, e1);
-            intersection.addNeighbour(closest.n1(), e1);
+            if(n.equals(intersection)) {
+                closest.n1().removeNeighbour(closest.n2());
+                closest.n2().removeNeighbour(closest.n1());
+                e1 = new Edge(closest.n1(), n, f);
 
-            e2 = new Edge(intersection, closest.n2(), f);
-            closest.n2().addNeighbour(intersection, e2);
-            intersection.addNeighbour(closest.n2(), e2);
+                closest.n1().addNeighbour(n, e1);
+                n.addNeighbour(closest.n1(), e1);
 
-            //reinitialize shortest to fit clean nodes
-            shortest = new Edge(n,intersection,this.linFunc);
-            intersection.addNeighbour(n, shortest);
-            n.addNeighbour(intersection, shortest);
+                e2 = new Edge(n, closest.n2(), f);
+                closest.n2().addNeighbour(n, e2);
+                n.addNeighbour(closest.n2(), e2);
 
-            this.edges.add(e1);
-            this.edges.add(e2);
-            this.edges.add(shortest);
-            this.nodes.add(n);
-            this.nodes.add(intersection);
+                this.edges.add(e1);
+                this.edges.add(e2);
+                this.nodes.add(n);
+            }
+            else {
+                //break apart edge
+                closest.n1().removeNeighbour(closest.n2());
+                closest.n2().removeNeighbour(closest.n1());
+
+                e1 = new Edge(closest.n1(), intersection, f);
+                closest.n1().addNeighbour(intersection, e1);
+                intersection.addNeighbour(closest.n1(), e1);
+
+                e2 = new Edge(intersection, closest.n2(), f);
+                closest.n2().addNeighbour(intersection, e2);
+                intersection.addNeighbour(closest.n2(), e2);
+
+                //reinitialize shortest to fit clean nodes
+                shortest = new Edge(n, intersection, this.linFunc);
+                intersection.addNeighbour(n, shortest);
+                n.addNeighbour(intersection, shortest);
+
+
+                this.edges.add(e1);
+                this.edges.add(e2);
+                this.edges.add(shortest);
+                this.nodes.add(n);
+                this.nodes.add(intersection);
+            }
 
         }
         else if(intersection.x()>closest.n1().x()){ //intersection on n1 side of closest
-            e1 = new Edge(closest.n1(),intersection,f);
-            closest.n1().addNeighbour(intersection,e1);
-            intersection.addNeighbour(closest.n1(),e1);
+            if(n.equals(intersection)) {
+                closest.n1().removeNeighbour(closest.n2());
+                closest.n2().removeNeighbour(closest.n1());
 
-            //reinitialize shortest to fit clean nodes
-            shortest = new Edge(n,intersection,this.linFunc);
-            intersection.addNeighbour(n, shortest);
-            n.addNeighbour(intersection, shortest);
+                e1 = new Edge(closest.n1(), n, f);
+                closest.n1().addNeighbour(n, e1);
+                n.addNeighbour(closest.n1(), e1);
 
-            this.edges.add(e1);
-            this.edges.add(shortest);
-            this.nodes.add(intersection);
-            this.nodes.add(n);
+
+                this.edges.add(e1);
+                this.nodes.add(n);
+            }
+            else {
+                e1 = new Edge(closest.n1(), intersection, f);
+                closest.n1().addNeighbour(intersection, e1);
+                intersection.addNeighbour(closest.n1(), e1);
+
+                //reinitialize shortest to fit clean nodes
+                shortest = new Edge(n, intersection, this.linFunc);
+                intersection.addNeighbour(n, shortest);
+                n.addNeighbour(intersection, shortest);
+
+                this.edges.add(e1);
+                this.edges.add(shortest);
+                this.nodes.add(intersection);
+                this.nodes.add(n);
+            }
         }
         else{   //intersection on n2 side of closest
-            e1 = new Edge(closest.n2(),intersection,f);
-            closest.n2().addNeighbour(intersection,e1);
-            intersection.addNeighbour(closest.n2(),e1);
 
-            //reinitialize shortest to fit clean nodes
-            shortest = new Edge(n,intersection,this.linFunc);
-            intersection.addNeighbour(n, shortest);
-            n.addNeighbour(intersection, shortest);
+            if(n.equals(intersection)) {
+                closest.n1().removeNeighbour(closest.n2());
+                closest.n2().removeNeighbour(closest.n1());
 
-            this.edges.add(e1);
-            this.edges.add(shortest);
-            this.nodes.add(intersection);
-            this.nodes.add(n);
+                e2 = new Edge(n, closest.n2(), f);
+                closest.n2().addNeighbour(n, e2);
+                n.addNeighbour(closest.n2(), e2);
+
+                this.edges.add(e2);
+                this.nodes.add(n);
+            }
+            else{
+                e1 = new Edge(closest.n2(),intersection,f);
+                closest.n2().addNeighbour(intersection,e1);
+                intersection.addNeighbour(closest.n2(),e1);
+
+                //reinitialize shortest to fit clean nodes
+                shortest = new Edge(n,intersection,this.linFunc);
+                intersection.addNeighbour(n, shortest);
+                n.addNeighbour(intersection, shortest);
+
+                this.edges.add(e1);
+                this.edges.add(shortest);
+                this.nodes.add(intersection);
+                this.nodes.add(n);
+            }
         }
-
+        return n;
     }
 
     public List<Node> getNodes(){
         return this.nodes;
+    }
+
+    public List<Edge> getEdges() {
+        return this.edges;
     }
 }
 
