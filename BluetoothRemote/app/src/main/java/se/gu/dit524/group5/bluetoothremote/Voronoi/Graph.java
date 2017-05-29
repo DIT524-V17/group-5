@@ -245,7 +245,7 @@ public class Graph {
         return n;
     }
 
-    public void addToNode(Node n){
+    public Node addToNode(Node n){
         ArrayList<Node> nodes = (ArrayList) this.nodes;
         ArrayList<Double> distances = new ArrayList<>();
         for(Node m : nodes){
@@ -273,6 +273,7 @@ public class Graph {
 
         this.nodes.add(n);
         this.edges.add(e);
+        return n;
     }
 
     public List<Node> getNodes(){

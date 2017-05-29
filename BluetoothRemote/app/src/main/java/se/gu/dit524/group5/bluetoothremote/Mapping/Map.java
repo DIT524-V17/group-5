@@ -282,7 +282,7 @@ public class Map {
                                 byte deg = (byte) ((Math.abs(directions[0]) & 0x7F) | (directions[0] > 0 ? 0b10000000 : 0x00));
                                 byte cm = (byte) ((Math.abs(directions[1]) & 0x7F) | (directions[1] < 0 ? 0b10000000 : 0x00));
 
-                                btInterface.send(new Instruction(new byte[]{0x31, deg}, 3, BluetoothService.AWAITING_STEERING_CALLBACK), true);
+                                btInterface.send(new Instruction(new byte[]{0x31, deg}, 3, BluetoothService.IDLE), true);
                                 btInterface.send(new Instruction(new byte[]{0x41, cm}, 2, BluetoothService.AWAITING_STEERING_CALLBACK), true);
 
                                 while (!steeringCallbackReceived) try {
@@ -307,14 +307,15 @@ public class Map {
                             }
                         }
                     }
-                    instructionOverlay = Bitmap.createBitmap(rawMap.getWidth(), rawMap.getHeight(), Bitmap.Config.ARGB_4444);
                     processingSteeringInstructions = false;
 
+                    /*
+                    instructionOverlay = Bitmap.createBitmap(rawMap.getWidth(), rawMap.getHeight(), Bitmap.Config.ARGB_4444);
                     if (mainActivity != null && drawCallback != null) try {
                         drawCallback.invoke(mainActivity);
                     } catch (Exception e) {
                         e.printStackTrace();
-                    }
+                    } */
                 }
             }).start();
             return true;

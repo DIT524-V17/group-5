@@ -463,7 +463,9 @@ public class ActivitySecond extends AppCompatActivity {
     }
 
     public void updateCarPosition() {
-        if (!this.map.steeringCallbackReceived) this.map.steeringCallbackReceived = true;
+        if (this.map.processingSteeringInstructions) {
+            this.map.steeringCallbackReceived = true;
+        }
         else {
             this.lastSteeringDirection = null; redrawMap();
         }

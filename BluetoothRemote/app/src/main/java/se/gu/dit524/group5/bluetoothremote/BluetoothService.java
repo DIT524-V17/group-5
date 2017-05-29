@@ -193,12 +193,18 @@ public class BluetoothService {
                 try {
                     numBytes = mmInStream.read(mmBuffer);
                     if (sending) {
-                        if (lastMsg[lastMsg.length -1] != mmBuffer[numBytes -1]) {
-                            write(lastMsg);
-                        }
+                        if (lastMsg[lastMsg.length -1] != mmBuffer[numBytes -1]) write(lastMsg);
                         else {
                             if (commandQueue.size() > 0 && Arrays.equals(lastMsg, commandQueue.peek().getCmd())) {
-                                commandQueue.poll();
+                                Instruction ins = commandQueue.poll();
+                                if (ins.getBtState() == AWAITING_STEERING_CALLBACK) {
+                                    try {
+                                        state = IDLE;
+                                        automaticSteeringCallback.invoke(mainActivity);
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
+                                }
                             }
 
                             lastMsg = null;

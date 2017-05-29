@@ -10,9 +10,9 @@ import se.gu.dit524.group5.bluetoothremote.Voronoi.Node;
 public class FastFinder {
     /** Fast route finder using Dijkstras algorithm  (see TramFinder.findRoute) **/
     public static Node[] findRoute(Graph nw, Node from, Node to) {
-        if(!nw.hasNode(from)) nw.addToNode(from);
+        if(!nw.hasNode(from)) from = nw.addToNode(from);
         else from = nw.findNode(from);
-        if(!nw.hasNode(to)) nw.addToNode(to);
+        if(!nw.hasNode(to)) to = nw.addToNode(to);
         else to = nw.findNode(to);
 
         // Initialize a new heap to keep track of currently available connections
