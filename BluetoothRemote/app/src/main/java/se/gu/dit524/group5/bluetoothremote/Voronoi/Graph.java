@@ -245,6 +245,36 @@ public class Graph {
         return n;
     }
 
+    public void addToNode(Node n){
+        ArrayList<Node> nodes = (ArrayList) this.nodes;
+        ArrayList<Double> distances = new ArrayList<>();
+        for(Node m : nodes){
+            double dist = Math.sqrt(
+                          Math.pow(n.y()-m.y(),2)
+                        + Math.pow(n.x()-m.x(),2)
+            );
+            distances.add(dist);
+        }
+        //find closest
+        Node closest = new Node(0,0,1000);
+        Double dist = Double.MAX_VALUE;
+        for(int i = 0; i<nodes.size(); i++){
+            if(distances.get(i)<dist){
+                dist = distances.get(i);
+                closest = nodes.get(i);
+            }
+        }
+
+        //add node n to the graph
+        n = new Node(n.x(),n.y(),this.nodes.size());
+        Edge e = new Edge(n,closest,this.linFunc);
+        n.addNeighbour(closest,e);
+        closest.addNeighbour(n,e);
+
+        this.nodes.add(n);
+        this.edges.add(e);
+    }
+
     public List<Node> getNodes(){
         return this.nodes;
     }
