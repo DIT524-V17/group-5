@@ -352,7 +352,7 @@ public class ActivitySecond extends AppCompatActivity {
                                     map.mainActivity = ActivitySecond.this;
                                     map.drawCallback = ActivitySecond.this.getClass().getMethod("redrawMap", new Class[]{ });
                                 } catch (NoSuchMethodException e) { e.printStackTrace(); }
-                                map.updateCarPosition(getApplicationContext(), voronoi.voronoiGraph, map.getCar().center(), dest);
+                                map.updateCarPosition(voronoi.voronoiGraph, map.getCar().center(), dest);
                             }
                             else {
                                 lastSteeringDirection = new PointF(dest.x - map.getCar().center().x, dest.y - map.getCar().center().y);

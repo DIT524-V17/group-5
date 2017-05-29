@@ -256,7 +256,7 @@ public class Map {
         this.car = new Car(c.center().x, c.center().y, c.front());
     }
 
-    public boolean updateCarPosition(final Context ctx, Graph nw, PointF src, PointF dst) {
+    public boolean updateCarPosition(Graph nw, PointF src, PointF dst) {
         if (this.processingSteeringInstructions) return false;
         final Node[] route =  FastFinder.findRoute(nw, new Node(src.x, src.y, -1), new Node(dst.x, dst.y, -1));
         if (route != null) {
@@ -308,14 +308,6 @@ public class Map {
                         }
                     }
                     processingSteeringInstructions = false;
-
-                    /*
-                    instructionOverlay = Bitmap.createBitmap(rawMap.getWidth(), rawMap.getHeight(), Bitmap.Config.ARGB_4444);
-                    if (mainActivity != null && drawCallback != null) try {
-                        drawCallback.invoke(mainActivity);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    } */
                 }
             }).start();
             return true;
@@ -336,7 +328,7 @@ public class Map {
                     byte deg = (byte)((Math.abs(directions[0]) &0x7F) |(directions[0] > 0 ? 0b10000000 : 0x00));
                     byte cm  = (byte)((Math.abs(directions[1]) &0x7F) |(directions[1] < 0 ? 0b10000000 : 0x00));
 
-                    btInterface.send(new Instruction(new byte[]{ 0x31, deg }, 3, BluetoothService.AWAITING_STEERING_CALLBACK), true);
+                    btInterface.send(new Instruction(new byte[]{ 0x31, deg }, 3, BluetoothService.IDLE), true);
                     btInterface.send(new Instruction(new byte[]{ 0x41, cm }, 2, BluetoothService.AWAITING_STEERING_CALLBACK), true);
                 }
 
