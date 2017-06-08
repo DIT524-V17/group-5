@@ -209,22 +209,27 @@ public class ActivitySecond extends AppCompatActivity {
                             @Override
                             public void onClick(View v) {
                                 voronoi = new Voronoi(map.generateConcreteMap(obstacleThreshold.getProgress()));
-                                ArrayList<Point> obstacleCenters = map.getObstacleCenters();
+                                ArrayList<PointF> obstacleCenters = map.getObstacleCenters();
                                 if (obstacleCenters != null && obstacleCenters.size() > 0) {
-                                    for (Point p : obstacleCenters) {
+                                    // OBSTACLE-CENTERS
+
+                                    for (PointF p : obstacleCenters) {
+                                        int x = (int) p.x, y = (int) p.y;
                                         if ((map.generateConcreteMap(obstacleThreshold.getProgress()).
-                                                getPixel(p.x, p.y) & 0xff) != 0xff) voronoi.addSite(new Coordinate(p.x, p.y));
+                                                getPixel(x, y) & 0xff) != 0xff) voronoi.addSite(new Coordinate(x, y));
                                         else if (p.x +1 < map.getMap().getWidth() && (map.generateConcreteMap(obstacleThreshold.getProgress()).
-                                                getPixel(p.x +1, p.y) & 0xff) != 0xff) voronoi.addSite(new Coordinate(p.x +1, p.y));
+                                                getPixel(x +1, y) & 0xff) != 0xff) voronoi.addSite(new Coordinate(x +1, y));
                                         else if (p.x -1 >= 0 && (map.generateConcreteMap(obstacleThreshold.getProgress()).
-                                                getPixel(p.x -1, p.y) & 0xff) != 0xff) voronoi.addSite(new Coordinate(p.x -1, p.y));
+                                                getPixel(x -1, y) & 0xff) != 0xff) voronoi.addSite(new Coordinate(x -1, y));
                                         else if (p.y +1 < map.getMap().getHeight() && (map.generateConcreteMap(obstacleThreshold.getProgress()).
-                                                getPixel(p.x, p.y +1) & 0xff) != 0xff) voronoi.addSite(new Coordinate(p.x, p.y +1));
+                                                getPixel(x, y +1) & 0xff) != 0xff) voronoi.addSite(new Coordinate(x, y +1));
                                         else if (p.y -1 >= 0 && (map.generateConcreteMap(obstacleThreshold.getProgress()).
-                                                getPixel(p.x, p.y -1) & 0xff) != 0xff) voronoi.addSite(new Coordinate(p.x, p.y -1));
+                                                getPixel(x, y -1) & 0xff) != 0xff) voronoi.addSite(new Coordinate(x, y -1));
                                     }
                                 }
                                 else {
+                                    // HONEYCOMB-PATTERN
+
                                     int xInterval = (int) (map.getMap().getWidth() / Math.sqrt(
                                             Math.pow(CAR_HEIGHT - WHEEL_FRONT_OFFSET - WHEEL_HEIGHT / 2 + CUPHOLDER_HEIGHT, 2) + Math.pow(CAR_WIDTH, 2)) * 2);
                                     int yInterval = (int) (map.getMap().getHeight() / Math.sqrt(
@@ -341,7 +346,7 @@ public class ActivitySecond extends AppCompatActivity {
 
                     PointF dest = new PointF(x / widthCR, y / heightCR);
 
-                    if (!voronoiToggle.isChecked()) {
+                    if (!voronoiToggle.isChecked() || !vSiteToggle.isChecked()) {
                         targetView.setVisibility(View.VISIBLE);
                         updateTargetView(dest);
 
@@ -361,7 +366,7 @@ public class ActivitySecond extends AppCompatActivity {
                             }
                         }
                     }
-                    else {
+                    else if (vSiteToggle.isChecked()) {
                         if (event.getAction() == MotionEvent.ACTION_UP) {
                             voronoi.addSite(new Coordinate(dest.x, dest.y));
                             redrawMap();
@@ -584,6 +589,18 @@ public class ActivitySecond extends AppCompatActivity {
             }
             else if (fileName.equals("sites_demo_200x200_objectoutlines.png")) {
                 Bitmap bmp = BitmapFactory.decodeResource(context.getResources(), R.drawable.sites_demo_200x200_objectoutlines)
+                        .copy(Bitmap.Config.ARGB_8888, true);
+                bmp.setConfig(Bitmap.Config.ARGB_4444);
+                return bmp;
+            }
+            else if (fileName.equals("map_demo_200x200_objectoutlineschemes.png")) {
+                Bitmap bmp = BitmapFactory.decodeResource(context.getResources(), R.drawable.map_demo_200x200_objectoutlineschemes)
+                        .copy(Bitmap.Config.ARGB_8888, true);
+                bmp.setConfig(Bitmap.Config.ARGB_4444);
+                return bmp;
+            }
+            else if (fileName.equals("sites_demo_200x200_objectoutlineschemes.png")) {
+                Bitmap bmp = BitmapFactory.decodeResource(context.getResources(), R.drawable.sites_demo_200x200_objectoutlineschemes)
                         .copy(Bitmap.Config.ARGB_8888, true);
                 bmp.setConfig(Bitmap.Config.ARGB_4444);
                 return bmp;

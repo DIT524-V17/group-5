@@ -102,10 +102,10 @@ public class Map {
         this.btInterface = btInterface;
     }
 
-    public ArrayList<Point> getObstacleCenters() {
+    public ArrayList<PointF> getObstacleCenters() {
         if (this.sensorReadings == null || this.sensorReadings.size() == 0) return null;
         else {
-            ArrayList<Point> obstacleCenters = new ArrayList<>();
+            ArrayList<PointF> obstacleCenters = new ArrayList<>();
             for (ScanResult scanResult : this.sensorReadings)
                 for (ScanResult.SingleScan scan : scanResult.scans())
                     obstacleCenters.addAll(this.processMeasurementToList(scan, null, scanResult.car()));
@@ -114,7 +114,7 @@ public class Map {
         }
     }
 
-    private ArrayList<Point> processMeasurementToList(ScanResult.SingleScan scan, @Nullable Canvas canvas, Car car) {
+    private ArrayList<PointF> processMeasurementToList(ScanResult.SingleScan scan, @Nullable Canvas canvas, Car car) {
         this.mapParser = new MapParser(canvas, car);
         return this.mapParser.parseToList(scan.getDistanceA(), scan.getDistanceB(), scan.getAngle());
     }
@@ -273,12 +273,12 @@ public class Map {
                     if (btInterface != null) {
                         while (btInterface.busy()) try { Thread.sleep(500); }
                         catch (InterruptedException e) { e.printStackTrace(); }
-
                         for (int i = 0; i < route.length; i++) {
                             steeringCallbackReceived = false;
 
                             int[] directions = car.findPath(route[i].getLoc(), rawMap.getWidth(), rawMap.getHeight());
-                            if (directions[0] != -1 && directions[1] != -1) {
+                            // TODO: reconsider this condition when moving backwards becomes a thing
+                            if (directions[1] >= INSTRUCTION_MOVE_THRESHOLD) {
                                 byte deg = (byte) ((Math.abs(directions[0]) & 0x7F) | (directions[0] > 0 ? 0b10000000 : 0x00));
                                 byte cm = (byte) ((Math.abs(directions[1]) & 0x7F) | (directions[1] < 0 ? 0b10000000 : 0x00));
 
@@ -321,7 +321,8 @@ public class Map {
             PointF dest = new PointF(this.car.center().x +x, this.car.center().y +y);
             int[] directions = this.car.findPath(dest, this.rawMap.getWidth(), this.rawMap.getHeight());
 
-            if (directions[0] != 0 || directions[1] != 0) {
+            // TODO: reconsider this condition when moving backwards becomes a thing
+            if (directions[1] >= INSTRUCTION_MOVE_THRESHOLD) {
                 if (btInterface != null) {
                     if (btInterface.busy()) return false;
 
@@ -374,10 +375,10 @@ public class Map {
         this.processScanResult(scanResult, true);
     }
 
-    private ArrayList<Point> processScanResult(ScanResult scanResult, boolean draw) {
+    private ArrayList<PointF> processScanResult(ScanResult scanResult, boolean draw) {
         Canvas outCanvas = null, poiCanvas = null, mapCanvas = null;
         Bitmap out = null, poi = null;
-        ArrayList<Point> obstacleCenters = new ArrayList<>();
+        ArrayList<PointF> obstacleCenters = new ArrayList<>();
 
         if (draw) {
             this.resize();

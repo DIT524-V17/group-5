@@ -25,7 +25,7 @@ public class MapParser {
         this.car = car;
     }
 
-    ArrayList<Point> parseToList(int distanceFront, int distanceBack, int angle) {
+    ArrayList<PointF> parseToList(int distanceFront, int distanceBack, int angle) {
         return this.parse(distanceFront, distanceBack, angle, false, false);
     }
 
@@ -37,42 +37,46 @@ public class MapParser {
         this.parse(distanceFront, distanceBack, angle, true, true);
     }
 
-    private ArrayList<Point> parse(int distanceFront, int distanceBack, int angle, boolean draw, boolean cleanup) {
+    private ArrayList<PointF> parse(int distanceFront, int distanceBack, int angle, boolean draw, boolean cleanup) {
         int frontAngle = (int) -this.car.front() -angle;
         int backAngle  = frontAngle -180;
 
-        ArrayList<Point> obstacleCenters = new ArrayList<>();
+        ArrayList<PointF> obstacleCenters = new ArrayList<>();
         double cos = Math.cos(Math.toRadians(frontAngle));
         double sin = Math.sin(Math.toRadians(frontAngle));
 
         if (distanceFront <= SENSOR_MAX_DISTANCE && distanceFront > 0) {
-            obstacleCenters.add(new Point((int) (distanceFront *cos +this.car.servo().x),
-                                          (int) (distanceFront *sin +this.car.servo().y)));
-            if (draw) setAsObstacle(obstacleCenters.get(obstacleCenters.size() -1), frontAngle, cleanup);
+            obstacleCenters.add(
+                setAsObstacle(new Point((int) (distanceFront *cos +this.car.servo().x),
+                                        (int) (distanceFront *sin +this.car.servo().y)), frontAngle, cleanup, draw));
         }
         else {
-            obstacleCenters.add(new Point((int) (SENSOR_MAX_DISTANCE *cos +this.car.servo().x),
-                                          (int) (SENSOR_MAX_DISTANCE *sin +this.car.servo().y)));
-            if (draw) setAsObstacle(obstacleCenters.get(obstacleCenters.size() -1), frontAngle, true);
+            obstacleCenters.add(
+                setAsObstacle(new Point((int) (SENSOR_MAX_DISTANCE *cos +this.car.servo().x),
+                                        (int) (SENSOR_MAX_DISTANCE *sin +this.car.servo().y)), frontAngle, true, draw));
         }
 
         cos = Math.cos(Math.toRadians(backAngle));
         sin = Math.sin(Math.toRadians(backAngle));
 
         if (distanceBack <= SENSOR_MAX_DISTANCE && distanceBack > 0) {
-            obstacleCenters.add(new Point((int) (distanceBack *cos +this.car.servo().x),
-                                          (int) (distanceBack *sin +this.car.servo().y)));
-            if (draw) setAsObstacle(obstacleCenters.get(obstacleCenters.size() -1), backAngle, cleanup);
+            obstacleCenters.add(
+                setAsObstacle(new Point((int) (distanceBack *cos +this.car.servo().x),
+                                        (int) (distanceBack *sin +this.car.servo().y)), backAngle, cleanup, draw));
         }
         else {
-            obstacleCenters.add(new Point((int) (SENSOR_MAX_DISTANCE *cos +this.car.servo().x),
-                                          (int) (SENSOR_MAX_DISTANCE *sin +this.car.servo().y)));
-            if (draw) setAsObstacle(obstacleCenters.get(obstacleCenters.size() -1), backAngle, true);
+            obstacleCenters.add(
+                setAsObstacle(new Point((int) (SENSOR_MAX_DISTANCE *cos +this.car.servo().x),
+                                        (int) (SENSOR_MAX_DISTANCE *sin +this.car.servo().y)), backAngle, true, draw));
         }
         return obstacleCenters;
     }
 
-    private void setAsObstacle(Point coord, int angle, boolean cleanUp){
+    private void setAsObstacle(Point coord, int angle, boolean cleanUp) {
+        this.setAsObstacle(coord, angle, cleanUp, true);
+    }
+
+    private PointF setAsObstacle(Point coord, int angle, boolean cleanUp, boolean draw){
         if (coord != null) {
             Paint p = new Paint();
             p.setStrokeWidth(1.0f);
@@ -91,19 +95,22 @@ public class MapParser {
             PointF C = new PointF((float)(this.car.servo().x +HY *Math.sin(Math.toRadians(angle +7.5))),
                                   (float)(this.car.servo().y -HY *Math.cos(Math.toRadians(angle +7.5))));
 
-            if (cleanUp) {
-                p.setColor(Color.argb(FREE_SPACE_INTENSITY, 0xff, 0xff, 0xff));
-                Path path = new Path();
-                path.moveTo(A.x, A.y);
-                path.lineTo(B.x, B.y);
-                path.lineTo(C.x, C.y);
-                path.close();
-                this.canvas.drawPath(path, p);
+            if (draw) {
+                if (cleanUp) {
+                    p.setColor(Color.argb(FREE_SPACE_INTENSITY, 0xff, 0xff, 0xff));
+                    Path path = new Path();
+                    path.moveTo(A.x, A.y);
+                    path.lineTo(B.x, B.y);
+                    path.lineTo(C.x, C.y);
+                    path.close();
+                    this.canvas.drawPath(path, p);
+                } else {
+                    p.setColor(Color.argb(OBSTACLE_INTENSITY, 0x00, 0x00, 0x00));
+                    this.canvas.drawLine(B.x, B.y, C.x, C.y, p);
+                }
             }
-            else {
-                p.setColor(Color.argb(OBSTACLE_INTENSITY, 0x00, 0x00, 0x00));
-                this.canvas.drawLine(B.x, B.y, C.x, C.y, p);
-            }
+            return new PointF((B.x +C.x) /2, (B.y +C.y) /2);
         }
+        else return null;
     }
 }

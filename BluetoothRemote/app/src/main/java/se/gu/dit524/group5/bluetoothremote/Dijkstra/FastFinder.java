@@ -36,7 +36,9 @@ public class FastFinder {
             // the 'fastest' array - which will automatically mark the new node as visited, since fastest[conn.to.id]
             // will no longer be equal to null.
             PriorityConnection shortest = (PriorityConnection)availableConnections.removeMin();
-            fastest[shortest.to.id()] = shortest;
+
+            if (shortest == null) return null;
+            else fastest[shortest.to.id()] = shortest;
 
             // In case the destination is reached, it's time to return a sorted representation of the fastest route:
             if (shortest.to.equals(to)) {

@@ -1,0 +1,246 @@
+a3ca8db;Julian Bock;2017-05-29 06:46:25 +0200;... it's now all sticky. Like tape. I like tape.
+ 2 files changed, 3 insertions(+), 11 deletions(-)
+
+2590fae;S. R. "Vinny;2017-05-29 06:36:17 +0200;anddd another version
+ 1 file changed, 0 insertions(+), 0 deletions(-)
+
+d4a4606;S. R. "Vinny;2017-05-29 06:28:24 +0200;dotted version of thing
+ 1 file changed, 0 insertions(+), 0 deletions(-)
+
+82c5827;Julian Bock;2017-05-29 06:15:18 +0200;... we ended up using it to kinda fix MARBLE.
+ 5 files changed, 21 insertions(+), 11 deletions(-)
+
+57d0a1c;Julian Bock;2017-05-29 05:26:48 +0200;... it was still sticky.
+1dde4e8;Julian Bock;2017-05-29 05:21:42 +0200;I found tape in the trash.
+ 15 files changed, 206 insertions(+), 152 deletions(-)
+
+44471a3;S Racheva;2017-05-29 05:20:02 +0200;new adding method, um, added
+ 2 files changed, 34 insertions(+), 5 deletions(-)
+
+a154666;Julian Bock;2017-05-29 03:10:32 +0200;Merge branch 'master' of https://github.com/DIT524-V17/group-5
+d021904;S Racheva;2017-05-29 02:43:00 +0200;node initialization issue fixed
+ 2 files changed, 42 insertions(+), 32 deletions(-)
+
+8ee17b6;Julian Bock;2017-05-29 01:42:12 +0200;Merge branch 'master' of https://github.com/DIT524-V17/group-5
+ba50cfd;Julian Bock;2017-05-29 01:41:57 +0200;at least I have a horrible, horrible book to read as soon as we're done
+ 2 files changed, 50 insertions(+), 34 deletions(-)
+
+aa6f2c0;S. R. "Vinny;2017-05-29 00:03:35 +0200;Merge pull request #8 from DIT524-V17/dijkstra
+ff2b680;S. R. "Vinny;2017-05-29 00:03:10 +0200;Merge branch 'master' into dijkstra
+4f1f82a;Julian Bock;2017-05-28 23:37:39 +0200;Merge branch 'master' of https://github.com/DIT524-V17/group-5
+70ff872;Julian Bock;2017-05-28 23:36:45 +0200;things have been done. bad things. (and maybe a few good ones)
+ 4 files changed, 128 insertions(+), 26 deletions(-)
+
+65fe938;S Racheva;2017-05-28 23:25:38 +0200;pleasepleaseplease work
+ 17 files changed, 86 insertions(+), 929 deletions(-)
+
+45123fe;Simon;2017-05-28 19:26:00 +0200;Tests for the sensor part worksgit add .
+ 2 files changed, 72 insertions(+), 66 deletions(-)
+
+1fe2bee;S Racheva;2017-05-28 19:22:58 +0200;edgefind is WORKING
+ 5 files changed, 79 insertions(+), 30 deletions(-)
+
+a1dc8b2;Julian Bock;2017-05-28 19:12:26 +0200;added a prepared map for the demo, made some modifications to the automatic generation of the (voronoi) network (and fixed god knows what mionor issues else)
+ 8 files changed, 240 insertions(+), 88 deletions(-)
+
+7cfd93f;S Racheva;2017-05-28 13:03:50 +0200;fully functional & integrated with the voronoi
+ 3 files changed, 6 insertions(+), 6 deletions(-)
+
+f0e0fc8;S Racheva;2017-05-28 02:15:59 +0200;more smoothing out merge issues
+ 7 files changed, 355 insertions(+), 97 deletions(-)
+
+6119446;S Racheva;2017-05-28 01:28:58 +0200;some integration stuff to minimize future merge issues
+ 6 files changed, 522 insertions(+), 32 deletions(-)
+
+019e8df;Julian Bock;2017-05-27 21:49:59 +0200;made 'save' and 'load' a thing for maps and voronoi sites, modified gui to  give the user more control about the actual voronoi generation
+ 8 files changed, 405 insertions(+), 82 deletions(-)
+
+b90a68f;Julian Bock;2017-05-26 18:20:31 +0200;minor tweaking
+ 1 file changed, 36 insertions(+), 47 deletions(-)
+
+f1eb80b;Julian Bock;2017-05-26 18:07:38 +0200;Merge branch 'master' of https://github.com/DIT524-V17/group-5
+a8848dc;Julian Bock;2017-05-26 18:07:32 +0200;things have been fixed. (like, srsly, but I kinda forgot what they actually were about)
+ 7 files changed, 135 insertions(+), 73 deletions(-)
+
+401f3ff;amedar;2017-05-26 16:14:59 +0200;Save and Load Image added
+ 1 file changed, 64 insertions(+), 2 deletions(-)
+
+a0c72d8;MGhanem;2017-05-26 13:25:03 +0200;Added way to not add edges colliding
+ 2 files changed, 51 insertions(+), 6 deletions(-)
+
+52d92da;Julian Bock;2017-05-26 12:44:48 +0200;Merge branch 'master' of https://github.com/DIT524-V17/group-5
+8cbb79d;Julian Bock;2017-05-26 12:44:02 +0200;expelled the Map weirdness, updated the UI, added some other functionality
+ 7 files changed, 158 insertions(+), 134 deletions(-)
+
+6f1639f;Simon;2017-05-26 12:21:20 +0200;Place the test thing in a folder
+ 2 files changed, 104 insertions(+), 104 deletions(-)
+
+54f36b9;Simon;2017-05-26 12:20:47 +0200;Place the test thing in a folder
+ 4 files changed, 185 insertions(+), 185 deletions(-)
+
+d253b2e;SimonQ;2017-05-24 13:06:23 +0200;tried to separate the sketch for the test.
+ 1 file changed, 104 insertions(+)
+
+b0a1c6e;Simon;2017-05-19 13:14:45 +0200;Tried some changes but not complete
+ 1 file changed, 26 insertions(+), 15 deletions(-)
+
+f69181b;amedar;2017-05-05 11:00:41 +0200;Add files via upload
+ 1 file changed, 70 insertions(+)
+
+8655577;Julian Bock;2017-05-26 10:32:03 +0200;integrated Voronoi and Dijkstra, preliminary Map
+ 20 files changed, 1264 insertions(+), 651 deletions(-)
+
+fdc3a1c;Julian Bock;2017-05-24 11:08:48 +0200;Merge branch 'master' of https://github.com/DIT524-V17/group-5
+e797aca;Julian Bock;2017-05-24 11:08:40 +0200;refining the mapping (work in progress)
+ 7 files changed, 189 insertions(+), 83 deletions(-)
+
+a71a7dd;Mohamad Ghanem;2017-05-24 10:15:11 +0200;Merge pull request #7 from DIT524-V17/voronoi
+1337dd9;MGhanem;2017-05-24 10:13:58 +0200;Cleaning up branch to merge with master
+ 59 files changed, 811 insertions(+), 2321 deletions(-)
+
+e1f82a6;Mohamad Ghanem;2017-05-24 10:03:54 +0200;Merge pull request #6 from DIT524-V17/master
+bd265e0;MGhanem;2017-05-23 23:32:25 +0200;decided i will provide the entire android project as well for some reason maybe it will be useful I don't know
+ 29 files changed, 1012 insertions(+), 2 deletions(-)
+
+e00e266;MGhanem;2017-05-23 23:22:30 +0200;Spent an entire day with Julian almost banging my head against the wall debugging and fixing the voronoi parsing to usable nodes and edges. Things are working now and I made the voronoi class much cleaner in the Android Port of the java classes. Refer to that file when integrating stuff into the application.
+ 11 files changed, 580 insertions(+), 231 deletions(-)
+
+0735c13;S Racheva;2017-05-22 09:32:58 +0200;i/o of dijkstra is now of type double
+ 6 files changed, 231 insertions(+)
+
+16697f8;Julian Bock;2017-05-19 13:47:57 +0200;forgot to add the latest AndroidManifest
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+bb7599c;Julian Bock;2017-05-19 13:44:30 +0200;supplied the latest Arduino Sketch, matching the current version of our RemoteControl
+ 1 file changed, 17 insertions(+)
+
+8789685;Julian Bock;2017-05-19 13:42:00 +0200;manually merged the latest GUI with the latest Map implementation, fixed some smaller things on the way
+ 7 files changed, 214 insertions(+), 82 deletions(-)
+
+1650a4d;Julian Bock;2017-05-19 13:08:29 +0200;revised Map and MapParser, merged with Car
+ 4 files changed, 315 insertions(+), 169 deletions(-)
+
+380ebee;S Racheva;2017-05-17 15:24:48 +0200;Merge branch 'voronoi' of https://github.com/DIT524-V17/group-5 into voronoi
+5801aff;S Racheva;2017-05-17 15:24:39 +0200;adding old voronoi code for reference
+ 6 files changed, 382 insertions(+)
+
+d1af401;MGhanem;2017-05-17 14:49:24 +0200;Progress so far with stuff
+ 7 files changed, 239 insertions(+)
+
+a238336;S. R. "Vinny;2017-05-15 13:13:19 +0200;Merge pull request #5 from DIT524-V17/Application
+9380f72;S Racheva;2017-05-15 11:04:26 +0200;bye old voronoi
+ 6 files changed, 382 deletions(-)
+
+39a4d90;MGhanem;2017-05-12 13:16:06 +0200;Added some way to make voronoi diagram using the library. TODO: Extract the coordinates and store them to use them for intersections and dijkstras
+ 1 file changed, 110 insertions(+)
+
+ed33f0b;MGhanem;2017-05-12 13:11:33 +0200;External java topology suit jar added
+ 1 file changed, 0 insertions(+), 0 deletions(-)
+
+56d2ca4;Mohamad Ghanem;2017-05-12 13:06:26 +0200;Delete External Libraries
+ 1 file changed, 1 deletion(-)
+
+82a69a1;Mohamad Ghanem;2017-05-12 13:06:15 +0200;Create External Libraries
+ 1 file changed, 1 insertion(+)
+
+66ab230;Julian Bock;2017-05-12 11:00:35 +0200;fixed some issues/ inaccuracies regarding the rotation
+ 1 file changed, 25 insertions(+), 23 deletions(-)
+
+c637deb;Julian Bock;2017-05-11 00:02:21 +0200;Merge branch 'master' of https://github.com/DIT524-V17/group-5
+1ef333c;Julian Bock;2017-05-11 00:01:26 +0200;minor modifications
+ 1 file changed, 159 insertions(+), 120 deletions(-)
+
+1cf6ab1;Julian Bock;2017-05-10 23:42:56 +0200;Car class evolved
+ 1 file changed, 56 insertions(+), 4 deletions(-)
+
+c1a1d85;Anna Henryson;2017-05-10 12:36:30 +0200;list of maps page
+ 5 files changed, 53 insertions(+)
+
+e4e4d7b;Anna Henryson;2017-05-10 11:37:40 +0200;added a welcome text
+ 3 files changed, 14 insertions(+), 2 deletions(-)
+
+83f380b;Julian Bock;2017-05-10 10:27:59 +0200;introducing the Car class
+ 2 files changed, 262 insertions(+), 1 deletion(-)
+
+5834be6;MGhanem;2017-05-08 10:37:34 +0200;Removed old files that were irrelevant or integrated via other means
+ 6 files changed, 180 deletions(-)
+
+7f57efc;Mohamad Ghanem;2017-05-08 10:33:44 +0200;Merge pull request #4 from DIT524-V17/Mapping
+38ad44d;Mohamad Ghanem;2017-05-08 10:29:31 +0200;Merge pull request #3 from DIT524-V17/master
+c5d9a4b;annahen;2017-05-05 10:38:05 +0200;Merge pull request #2 from DIT524-V17/Application
+4133df5;Anna Henryson;2017-05-05 10:36:04 +0200;changed the button
+ 3 files changed, 5 insertions(+), 5 deletions(-)
+
+5bbc388;S Racheva;2017-04-28 10:40:32 +0200;here it is. here. it works. also its unfinished
+ 6 files changed, 382 insertions(+)
+
+3576706;S Racheva;2017-04-28 10:38:54 +0200;ok bear with me this WILL WORK
+31a3f32;S Racheva;2017-04-28 10:36:03 +0200;REALLY HOPE i committed this correctly now :))
+ 6 files changed, 382 insertions(+)
+
+f7cafa6;S Racheva;2017-04-28 00:13:05 +0200;added whatever ive done in private! it's still wip and most of the main class is there just for testing
+ 1 file changed, 1 insertion(+)
+
+126eac3;annahen;2017-04-27 15:21:38 +0200;Merge pull request #1 from DIT524-V17/Application
+dbb438a;Anna Henryson;2017-04-27 15:19:38 +0200;wieeee
+ 2 files changed, 98 insertions(+), 99 deletions(-)
+
+424472d;Anna Henryson;2017-04-27 13:41:27 +0200;start button works
+ 2 files changed, 8 insertions(+), 5 deletions(-)
+
+94eb47f;Julian Bock;2017-04-27 13:26:25 +0200;Add files via upload
+ 2 files changed, 253 insertions(+), 257 deletions(-)
+
+52f640d;Anna Henryson;2017-04-24 15:06:05 +0200;button on front page made clickable
+ 2 files changed, 26 insertions(+), 3 deletions(-)
+
+795e6da;Anna Henryson;2017-04-24 13:01:06 +0200;updated androidmanifest
+ 1 file changed, 6 insertions(+), 4 deletions(-)
+
+47c9a88;Anna Henryson;2017-04-24 12:57:22 +0200;changes in the ui
+ 8 files changed, 221 insertions(+), 107 deletions(-)
+
+42ca6c3;Anna Henryson;2017-04-19 19:33:14 +0200;obviously I forgot the images so here they are
+ 2 files changed, 0 insertions(+), 0 deletions(-)
+
+0ca80d5;Anna Henryson;2017-04-19 19:25:55 +0200;edited the UI and added a front page
+ 2 files changed, 30 insertions(+), 11 deletions(-)
+
+a1b9ce7;Julian Bock;2017-04-09 21:07:01 +0200;included the first mapping prototype and semi-automatic steering
+ 9 files changed, 623 insertions(+), 21 deletions(-)
+
+1001d6b;Julian Bock;2017-04-04 13:32:10 +0200;minor modifications
+ 2 files changed, 136 insertions(+), 35 deletions(-)
+
+ac48aae;MGhanem;2017-04-03 13:11:59 +0200;Refined stuff
+ 3 files changed, 65 insertions(+), 14 deletions(-)
+
+f9c6a81;MGhanem;2017-03-31 17:21:42 +0200;Changing struture
+ 10 files changed, 129 insertions(+), 129 deletions(-)
+
+004053e;Mohamad Ghanem;2017-03-31 17:14:39 +0200;Mapping in its alpha stage
+ 5 files changed, 129 insertions(+)
+
+445f465;Julian Bock;2017-03-27 22:37:06 +0200;Added Servo, Temperature Sensor, Ultrasonics and Relay
+ 6 files changed, 194 insertions(+), 13 deletions(-)
+
+58aa653;Julian Bock;2017-03-10 12:10:30 +0100;added a queue for sending prioritized instructions
+ 3 files changed, 126 insertions(+), 74 deletions(-)
+
+82a0479;Julian Bock;2017-03-07 12:19:21 +0100;AdvancedSteering sketch, modified BluetoothService
+ 5 files changed, 313 insertions(+), 293 deletions(-)
+
+8a8e716;Julian Bock;2017-02-27 09:55:05 +0100;I should have practiced this...
+ 3 files changed, 20 insertions(+), 108 deletions(-)
+
+4f5a7e7;Julian Bock;2017-02-27 09:50:12 +0100;just some cosmetic surgery
+ 2 files changed, 108 insertions(+)
+
+e549a48;Julian Bock;2017-02-27 09:37:54 +0100;BluetoothRemote and BasicMovement prototypes
+ 19 files changed, 518 insertions(+)
+
+36a4f19;S Racheva;2017-02-06 22:23:08 +0100;a small .gitignore for now
+ 1 file changed, 7 insertions(+)
+
+e01ed66;Dimitris Platis;2016-11-07 20:52:24 +0100;Initial commit
+ 2 files changed, 675 insertions(+)

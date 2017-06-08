@@ -22,4 +22,6 @@ public class Constants {
 
     public static final int OBSTACLE_INTENSITY =    0xFF;
     public static final int FREE_SPACE_INTENSITY =  0x22;
+
+    public static final int INSTRUCTION_MOVE_THRESHOLD = 10;
 }

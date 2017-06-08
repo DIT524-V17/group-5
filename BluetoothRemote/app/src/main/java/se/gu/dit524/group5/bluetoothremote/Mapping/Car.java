@@ -9,6 +9,8 @@ import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.support.annotation.Nullable;
 
+import java.util.ArrayList;
+
 import static se.gu.dit524.group5.bluetoothremote.Mapping.Constants.*;
 
 /**
@@ -312,21 +314,41 @@ public class Car {
 
     public int[] findPath(PointF dest, int mapWidth, int mapHeight) {
         float radius = (float) (Math.sqrt(Math.pow(mapWidth /2, 2) + Math.pow(mapHeight, 2)));
-        int directions[] = { -1, -1 };
-        for (int angle = -180; angle <= 180; angle++) {
+        ArrayList<int[]> possibleInstructions = new ArrayList<>();
+        int instructions[] = { -1, -1 };
+
+        for (int angle = 0; angle <= 180; angle++) {
             Car c = new Car(this.center.x, this.center.y, this.front);
             c.rotate(angle, false);
             for (int distance = 0; distance < radius; distance++) {
                 c.move(1, false);
-                if (Math.abs(Math.round(c.center().x) -Math.round(dest.x)) <= 1 &&
-                        Math.abs(Math.round(c.center().y) -Math.round(dest.y)) <= 1) {
-                    directions[0] = angle;
-                    directions[1] = distance;
-                    return directions;
+                if (Math.abs(Math.round(c.center().x) -Math.round(dest.x)) < 1 &&
+                        Math.abs(Math.round(c.center().y) -Math.round(dest.y)) < 1) {
+                    instructions[0] = angle;
+                    instructions[1] = distance;
+                    possibleInstructions.add(instructions);
                 }
             }
         }
-        return directions;
+
+        for (int angle = 0; angle >= -180; angle--) {
+            Car c = new Car(this.center.x, this.center.y, this.front);
+            c.rotate(angle, false);
+            for (int distance = 0; distance < radius; distance++) {
+                c.move(1, false);
+                if (Math.abs(Math.round(c.center().x) -Math.round(dest.x)) < 1 &&
+                        Math.abs(Math.round(c.center().y) -Math.round(dest.y)) < 1) {
+                    instructions[0] = angle;
+                    instructions[1] = distance;
+                    possibleInstructions.add(instructions);
+                }
+            }
+        }
+
+        for (int[] fav : possibleInstructions)
+            if (Math.abs(fav[0]) < Math.abs(instructions[0])) instructions = fav;
+
+        return instructions;
     }
 
     public void draw(Canvas c) {
